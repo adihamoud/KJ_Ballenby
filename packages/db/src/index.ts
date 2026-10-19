@@ -36,10 +36,28 @@ export interface SupabaseEnv {
 export function readSupabaseEnv(
   env: Record<string, string | undefined> = process.env,
 ): SupabaseEnv | null {
-  const url = env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = normalizeSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL);
+  const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
   if (!url || !anonKey) return null;
   return { url, anonKey };
+}
+
+/**
+ * Reduce whatever was pasted from the Supabase dashboard to the bare project URL.
+ * Accepts `https://ref.supabase.co`, with a trailing slash, or a service path such as
+ * `https://ref.supabase.co/rest/v1/` (the REST endpoint shown in the API settings page).
+ * Returns null for empty or unparseable input.
+ */
+export function normalizeSupabaseUrl(raw: string | undefined): string | null {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return null;
+  }
 }
 
 export function requireSupabaseEnv(env?: Record<string, string | undefined>): SupabaseEnv {
