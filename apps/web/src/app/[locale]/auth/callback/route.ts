@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/urls";
 
 /**
  * OAuth / magic-link callback. Supabase redirects here with a `code`;
@@ -24,11 +25,4 @@ export async function GET(
   }
 
   return NextResponse.redirect(new URL(`/${locale}/login?error=auth`, url.origin));
-}
-
-/** Only allow same-origin relative paths to prevent open redirects. */
-function safeNext(value: string | null, fallback: string): string {
-  if (!value) return fallback;
-  if (!value.startsWith("/") || value.startsWith("//")) return fallback;
-  return value;
 }

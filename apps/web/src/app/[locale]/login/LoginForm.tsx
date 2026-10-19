@@ -7,7 +7,16 @@ import { formatIsraeliMobile, normalizeIsraeliMobile } from "@/lib/phone";
 
 type Step = { kind: "choose" } | { kind: "code"; phone: string };
 
-export function LoginForm({ locale, configured }: { locale: string; configured: boolean }) {
+export function LoginForm({
+  locale,
+  configured,
+  next,
+}: {
+  locale: string;
+  configured: boolean;
+  /** Same-origin path to land on after sign-in (already validated by the page). */
+  next: string;
+}) {
   const t = useTranslations("login");
   const [step, setStep] = useState<Step>({ kind: "choose" });
   const [phoneInput, setPhoneInput] = useState("");
@@ -15,7 +24,8 @@ export function LoginForm({ locale, configured }: { locale: string; configured: 
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const callbackUrl = () => `${window.location.origin}/${locale}/auth/callback?next=/${locale}/app`;
+  const callbackUrl = () =>
+    `${window.location.origin}/${locale}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const signInWithProvider = (provider: "google" | "azure") => {
     setError(null);
@@ -75,7 +85,7 @@ export function LoginForm({ locale, configured }: { locale: string; configured: 
           setError(t("errors.invalidCode"));
           return;
         }
-        window.location.assign(`/${locale}/app`);
+        window.location.assign(next);
       } catch {
         setError(t("errors.generic"));
       }

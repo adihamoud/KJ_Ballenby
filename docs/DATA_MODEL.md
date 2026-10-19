@@ -52,17 +52,17 @@ PK `(venue_id, user_id)`.
 
 ### venue_tables
 
-| Column                  | Type                                    | Notes                                          |
-| ----------------------- | --------------------------------------- | ---------------------------------------------- |
-| id                      | uuid PK                                 |                                                |
-| venue_id                | uuid                                    | FK venues                                      |
-| label                   | text not null                           | e.g. `T12`, `Bar 3`                            |
-| join_code               | text not null                           | Short (4-6 chars), unique per venue, uppercase |
-| qr_token                | uuid not null default gen_random_uuid() | Encoded in the printed QR; rotatable           |
-| is_active               | boolean not null default true           |                                                |
-| created_at / updated_at | timestamptz                             |                                                |
+| Column                  | Type                                    | Notes                                         |
+| ----------------------- | --------------------------------------- | --------------------------------------------- |
+| id                      | uuid PK                                 |                                               |
+| venue_id                | uuid                                    | FK venues                                     |
+| label                   | text not null                           | e.g. `T12`, `Bar 3`                           |
+| join_code               | text not null                           | Short (4-6 chars), globally unique, uppercase |
+| qr_token                | uuid not null default gen_random_uuid() | Encoded in the printed QR; rotatable          |
+| is_active               | boolean not null default true           |                                               |
+| created_at / updated_at | timestamptz                             |                                               |
 
-Unique `(venue_id, join_code)`, unique `(qr_token)`.
+Unique `(venue_id, label)`, unique `(join_code)` (guests type the code without naming the venue), unique `(qr_token)`.
 
 ### nights
 
@@ -82,16 +82,19 @@ Constraint: at most one `open` night per venue (partial unique index, see Indexe
 
 ### groups
 
-| Column                  | Type                          | Notes                                   |
-| ----------------------- | ----------------------------- | --------------------------------------- |
-| id                      | uuid PK                       |                                         |
-| venue_id                | uuid                          | FK venues                               |
-| night_id                | uuid                          | FK nights                               |
-| table_id                | uuid null                     | FK venue_tables; null = ad hoc group    |
-| name                    | text not null                 | Defaults to table label or creator name |
-| created_by              | uuid                          | FK profiles                             |
-| is_active               | boolean not null default true |                                         |
-| created_at / updated_at | timestamptz                   |                                         |
+| Column                  | Type                          | Notes                                                                                 |
+| ----------------------- | ----------------------------- | ------------------------------------------------------------------------------------- |
+| id                      | uuid PK                       |                                                                                       |
+| venue_id                | uuid                          | FK venues                                                                             |
+| night_id                | uuid                          | FK nights                                                                             |
+| table_id                | uuid null                     | FK venue_tables; null = not at a table                                                |
+| name                    | text not null                 | Table label for `table` groups                                                        |
+| created_by              | uuid                          | FK profiles                                                                           |
+| kind                    | group_kind not null           | `table` (auto, one per table and night) or `adhoc` (named by a guest, invite by link) |
+| is_active               | boolean not null default true |                                                                                       |
+| created_at / updated_at | timestamptz                   |                                                                                       |
+
+A guest is in at most one group per night: the join RPCs move them out of any other group of that night. Constraint: one active `table` group per `(night_id, table_id)` (partial unique index).
 
 ### group_members
 
@@ -197,9 +200,9 @@ Cross-venue integrity: a trigger (or composite FK) asserts that `song_requests.s
 | Table           | Index                                                                                            | Purpose                                               |
 | --------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
 | venue_members   | `(user_id)`                                                                                      | "my venues" lookup and RLS membership checks          |
-| venue_tables    | unique `(venue_id, join_code)`, unique `(qr_token)`                                              | Join by code / QR                                     |
+| venue_tables    | unique `(join_code)`, unique `(qr_token)`, unique `(venue_id, label)`                            | Join by code / QR                                     |
 | nights          | partial unique `(venue_id) where status = 'open'`                                                | One open night per venue                              |
-| groups          | `(night_id, table_id) where is_active`                                                           | Find table's current group                            |
+| groups          | partial unique `(night_id, table_id) where kind = 'table' and is_active`                         | Find / enforce the table's current group              |
 | group_members   | `(user_id)`                                                                                      | RLS: which groups/nights the user is in               |
 | songs           | GIN `(search)`; `(venue_id, is_active)`; unique `(venue_id, title, artist)`                      | Full-text search, catalog listing, import upsert      |
 | songs           | `(venue_id, lower(title) text_pattern_ops)`                                                      | Prefix matching fallback for short queries            |
@@ -212,27 +215,41 @@ Cross-venue integrity: a trigger (or composite FK) asserts that `song_requests.s
 Helper functions (`security definer`, stable):
 
 - `is_venue_staff(venue_id, roles text[])` - true if `auth.uid()` is in `venue_members` for the venue with one of the roles.
-- `is_night_participant(night_id)` - true if `auth.uid()` is in `group_members` of an active group of that night and the night is `open`.
-- `is_venue_participant(venue_id)` - true if the user participates in the venue's open night.
+- `is_night_participant(night_id)` - true if `auth.uid()` is in `group_members` of a group of that night.
+- `is_venue_participant(venue_id)` - true if the user is in an active group of the venue's open night.
+- `is_group_member(group_id)` - true if the user is in that group (used instead of a self-referencing policy on `group_members`, which Postgres rejects as recursive).
 
-| Table           | select                                                                                                        | insert                                                                            | update                                                                         | delete                                          |
-| --------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
-| profiles        | own row; staff of a venue can read display_name/avatar of participants (view)                                 | trigger only                                                                      | own row                                                                        | -                                               |
-| venues          | participants and staff of that venue; `is_active` venues by slug for the join page (limited columns via view) | service role                                                                      | owner/admin                                                                    | -                                               |
-| venue_members   | staff of that venue                                                                                           | owner/admin                                                                       | owner/admin                                                                    | owner/admin (cannot remove last owner, trigger) |
-| venue_tables    | participants (active rows) and staff; token lookup via RPC `resolve_table(qr_token or join_code)`             | owner/admin                                                                       | owner/admin                                                                    | owner/admin                                     |
-| nights          | participants (open night) and staff                                                                           | dj/admin/owner                                                                    | dj/admin/owner                                                                 | -                                               |
-| groups          | participants of the night and staff                                                                           | authenticated user in the venue's open night (via RPC `join_table`)               | creator or staff                                                               | -                                               |
-| group_members   | members of the same group and staff                                                                           | self (RPC)                                                                        | -                                                                              | self (leave) or staff                           |
-| songs           | participants and staff (`is_active` for guests)                                                               | owner/admin, service role                                                         | owner/admin, service role                                                      | owner/admin                                     |
-| song_requests   | participants of the night and staff                                                                           | guest for self (`requested_by = auth.uid()`), via RPC that runs the engine; staff | guest: own row, only to `cancelled` from `pending/approved/queued`; staff: any | -                                               |
-| queue_entries   | participants of the night and staff                                                                           | staff / RPC                                                                       | staff / RPC                                                                    | staff                                           |
-| queue_rules     | staff                                                                                                         | owner/admin                                                                       | owner/admin                                                                    | -                                               |
-| catalog_imports | owner/admin                                                                                                   | owner/admin                                                                       | service role                                                                   | -                                               |
+RPCs (`security definer`, the only write path for groups and memberships):
+
+| Function                        | Who          | Does                                                                                                                                  |
+| ------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `resolve_table(code)`           | anon, authed | QR token (uuid) or join code -> venue id/name/slug, table id/label, open `night_id` or null. Only active tables of active venues.     |
+| `join_table(code)`              | authed       | Joins the table's active `table` group for the open night, creating it when missing. Status `joined` / `not_found` / `no_open_night`. |
+| `create_group(name, table_id?)` | authed       | Creates an `adhoc` group in the caller's open night (must already participate) and moves the caller into it.                          |
+| `join_group(group_id)`          | authed       | Joins an active group of an open night by id (invite link). Status `joined` / `not_found`.                                            |
+| `open_night(venue_id)`          | staff        | Opens a night with `rules_snapshot` copied from `queue_rules`; idempotent (returns the open night if one exists).                     |
+| `close_night(night_id)`         | staff        | Sets `status = closed`, `ended_at = now()`.                                                                                           |
+
+| Table           | select                                                                                           | insert                                                                            | update                                                                         | delete                                          |
+| --------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
+| profiles        | own row; members of the same group; staff of a venue can read participants of its nights         | trigger only                                                                      | own row                                                                        | -                                               |
+| venues          | participants and staff of that venue (join page uses RPC `resolve_table`)                        | service role                                                                      | owner/admin                                                                    | -                                               |
+| venue_members   | staff of that venue                                                                              | owner/admin                                                                       | owner/admin                                                                    | owner/admin (cannot remove last owner, trigger) |
+| venue_tables    | participants (active rows) and staff; code lookup via RPC `resolve_table(qr_token or join_code)` | owner/admin                                                                       | owner/admin                                                                    | owner/admin                                     |
+| nights          | participants (open night) and staff                                                              | dj/admin/owner                                                                    | dj/admin/owner                                                                 | -                                               |
+| groups          | participants of the night and staff                                                              | RPC `join_table` / `create_group` only                                            | creator or staff                                                               | -                                               |
+| group_members   | members of the same group and staff                                                              | RPC `join_table` / `join_group` / `create_group` only                             | -                                                                              | self (leave) or staff                           |
+| songs           | participants and staff (`is_active` for guests)                                                  | owner/admin, service role                                                         | owner/admin, service role                                                      | owner/admin                                     |
+| song_requests   | participants of the night and staff                                                              | guest for self (`requested_by = auth.uid()`), via RPC that runs the engine; staff | guest: own row, only to `cancelled` from `pending/approved/queued`; staff: any | -                                               |
+| queue_entries   | participants of the night and staff                                                              | staff / RPC                                                                       | staff / RPC                                                                    | staff                                           |
+| queue_rules     | staff                                                                                            | owner/admin                                                                       | owner/admin                                                                    | -                                               |
+| catalog_imports | owner/admin                                                                                      | owner/admin                                                                       | service role                                                                   | -                                               |
 
 Storage bucket `catalog-uploads`: owner/admin of the venue in the first path segment may insert/select; service role reads for processing.
 
 Edge Functions and scheduled jobs use the service role key and bypass RLS; they must always filter by `venue_id` explicitly.
+
+Realtime publication (`supabase_realtime`): `queue_entries`, `song_requests`, `nights`, `group_members`. RLS applies to realtime, except that `DELETE` events carry only the primary key, so clients treat events as a hint to refetch.
 
 ## 5. ER diagram
 
@@ -311,6 +328,7 @@ erDiagram
         uuid table_id FK
         text name
         uuid created_by FK
+        group_kind kind
         boolean is_active
     }
     group_members {

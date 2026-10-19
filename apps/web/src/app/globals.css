@@ -89,3 +89,36 @@ body {
   outline: 2px solid var(--color-brand-2);
   outline-offset: 1px;
 }
+
+/* Printable QR sheet: light background on screen and paper, chrome hidden when printing. */
+.print-sheet {
+  background: #fff;
+  color: #111;
+  border-radius: var(--radius-xl);
+}
+.print-sheet .text-muted {
+  color: #555;
+}
+.print-card {
+  border-color: #ddd;
+  break-inside: avoid;
+}
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    color: #000;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-sheet {
+    max-width: none;
+    padding: 0;
+    border-radius: 0;
+  }
+}

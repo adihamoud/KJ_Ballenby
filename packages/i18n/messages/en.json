@@ -4,7 +4,9 @@
     "tagline": "Your karaoke, in a fair queue",
     "loading": "Loading…",
     "back": "Back",
-    "language": "Language"
+    "language": "Language",
+    "venue": "Venue",
+    "notConfigured": "Supabase is not configured for this environment. See docs/SETUP_ACCOUNTS.md."
   },
   "landing": {
     "title": "Sing in turn, no fighting over the mic",
@@ -33,18 +35,128 @@
       "generic": "Something went wrong. Please try again."
     }
   },
+  "join": {
+    "title": "Join your table",
+    "subtitle": "Type the code printed on the table card",
+    "codeLabel": "Table code",
+    "codePlaceholder": "ABC12",
+    "submit": "Join",
+    "scanHint": "Or scan the QR code on the table",
+    "joinTable": "Join {table} at {venue}",
+    "signInHint": "Sign in to join the queue. It only takes a moment.",
+    "signInToJoin": "Sign in to join",
+    "notFound": {
+      "title": "We don't know this code",
+      "body": "Check the code on the table card or ask the staff.",
+      "retry": "Try another code"
+    },
+    "noNight": {
+      "title": "The night hasn't started yet",
+      "body": "{venue} hasn't opened tonight's queue for {table} yet. Try again once the DJ starts.",
+      "retry": "Try again"
+    },
+    "group": {
+      "title": "Group invite",
+      "notFound": {
+        "title": "This invite link is no longer valid",
+        "body": "The group may have closed or the night has ended."
+      }
+    },
+    "errors": {
+      "invalidCode": "Enter the 4–6 character code from the table card",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
   "app": {
     "welcome": "Hi, {name}",
     "noNight": "You haven't joined a night yet. Scan the QR code on your table.",
-    "signOut": "Sign out"
+    "joinCta": "Enter a table code",
+    "joinedToast": "Welcome to {group}!",
+    "signOut": "Sign out",
+    "venue": "Venue",
+    "table": "Table",
+    "group": "Group",
+    "members": {
+      "title": "In your group",
+      "count": "{count, plural, one {# person} other {# people}}",
+      "you": "(you)",
+      "unnamed": "Guest",
+      "live": "Live",
+      "reconnecting": "Reconnecting…"
+    },
+    "leave": "Leave group",
+    "createGroup": {
+      "title": "Start your own group",
+      "hint": "For friends at the same table who want their own list.",
+      "nameLabel": "Group name",
+      "namePlaceholder": "e.g. Dana's birthday",
+      "submit": "Create group"
+    },
+    "share": {
+      "title": "Invite friends",
+      "hint": "Anyone with this link joins your group.",
+      "copy": "Copy link",
+      "copied": "Copied!",
+      "share": "Share"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "invalidName": "Group name must be 1–40 characters",
+      "noOpenNight": "The night has closed. Scan the QR again once the queue opens.",
+      "notParticipant": "Join a table first."
+    }
   },
   "dj": {
     "title": "DJ dashboard",
-    "comingSoon": "The live queue lands here in phase 2."
+    "queuePlaceholder": "The live queue lands here later in phase 2.",
+    "notStaff": "You're not staff at any venue. Ask the owner to add you.",
+    "night": {
+      "open": "Night open since {time}",
+      "closed": "No open night",
+      "openButton": "Open night",
+      "closeButton": "Close night",
+      "closeConfirm": "Close the night? Guests will be disconnected from their tables.",
+      "error": "Couldn't update the night. Please try again."
+    }
   },
   "admin": {
     "title": "Venue admin",
-    "comingSoon": "Venue settings, tables and catalog land here in phase 2."
+    "notStaff": "You don't manage any venue. Ask the owner to add you as an admin.",
+    "venue": "Venue",
+    "nav": {
+      "tables": "Tables",
+      "tablesHint": "Join codes and printable QR codes"
+    },
+    "tables": {
+      "title": "Tables",
+      "empty": "No tables yet. Add the first one.",
+      "label": "Label",
+      "joinCode": "Join code",
+      "active": "Active",
+      "inactive": "Inactive",
+      "add": "Add table",
+      "newLabelPlaceholder": "e.g. T12 or Bar",
+      "rename": "Rename",
+      "save": "Save",
+      "cancel": "Cancel",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "print": "Print QR sheet",
+      "qrAlt": "QR code to join {label}",
+      "errors": {
+        "labelRequired": "Enter a label",
+        "duplicateLabel": "A table with this label already exists",
+        "forbidden": "You can't manage tables at this venue",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "print": {
+      "title": "Table QR codes",
+      "scan": "Scan to join the queue",
+      "orCode": "or enter the code",
+      "print": "Print",
+      "back": "Back to tables"
+    }
   },
   "notFound": {
     "title": "Page not found",

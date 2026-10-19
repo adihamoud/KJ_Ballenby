@@ -29,21 +29,21 @@ Done when:
 - `pnpm install && pnpm dev` works from a clean clone with the documented env vars.
 - `supabase db reset` applies migrations and seed without error.
 
-## Phase 2 - Core
+## Phase 2 - Core (in progress)
 
 **Goal:** Run a real karaoke night: guests join by QR, request from the venue's catalog, the engine orders the queue, and the DJ runs it live.
 
 Deliverables:
 
 - [ ] Full schema from `DATA_MODEL.md` with RLS policies and negative-case RLS tests
-- [ ] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback
-- [ ] Groups: auto-join table group, ad hoc groups with share link, member list
+- [x] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/{locale}/join/<qr_token>` join flow with code fallback
+- [x] Groups: auto-join table group, ad hoc groups with share link, member list (realtime)
 - [ ] Catalog upload (CSV + VirtualDJ XML) to Storage; `catalog-import` Edge Function; import status UI
 - [ ] Catalog search (tsvector + prefix) with language filter, fast on older phones
 - [ ] Request flow with singers, note, rules evaluation, localized rejection reasons
 - [ ] `@kj/queue-engine` complete: `evaluateRequest`, `reorder`, all reason codes, worked-example tests
 - [ ] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional)
-- [ ] DJ dashboard: realtime ordered queue, controls, copy-to-VirtualDJ action, open/close night
+- [~] DJ dashboard: realtime ordered queue, controls, copy-to-VirtualDJ action, open/close night (open/close night done)
 - [ ] Guest queue view with position, estimated wait, realtime updates, "you're up next" banner + vibration
 - [ ] Guest cancel own request
 - [ ] Playwright e2e: join -> search -> request -> DJ done -> position updates
