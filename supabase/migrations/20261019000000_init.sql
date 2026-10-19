@@ -447,27 +447,49 @@ alter publication supabase_realtime add table public.nights;
 
 -- ---------------------------------------------------------------------------
 -- Storage bucket for catalog uploads (private; owner/admin upload, service role reads).
+--
+-- The storage schema is owned by Supabase's storage service, which runs its own
+-- migrations. A bare Postgres (CI, plain `supabase/postgres` image) has the schema
+-- but not the full column set, so only configure storage when it is ready.
 -- ---------------------------------------------------------------------------
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values (
-  'catalog-imports', 'catalog-imports', false, 26214400,
-  array['text/csv', 'text/plain', 'application/xml', 'text/xml', 'application/vnd.ms-excel']
-)
-on conflict (id) do nothing;
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'storage' and table_name = 'buckets' and column_name = 'public'
+  ) then
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+    values (
+      'catalog-imports', 'catalog-imports', false, 26214400,
+      array['text/csv', 'text/plain', 'application/xml', 'text/xml', 'application/vnd.ms-excel']
+    )
+    on conflict (id) do nothing;
 
-create policy "catalog-imports: owner/admin upload" on storage.objects
-  for insert to authenticated with check (
-    bucket_id = 'catalog-imports'
-    and public.is_venue_staff(
-      ((storage.foldername(name))[1])::uuid,
-      array['owner', 'admin']::public.venue_role[]
-    )
-  );
-create policy "catalog-imports: owner/admin read" on storage.objects
-  for select to authenticated using (
-    bucket_id = 'catalog-imports'
-    and public.is_venue_staff(
-      ((storage.foldername(name))[1])::uuid,
-      array['owner', 'admin']::public.venue_role[]
-    )
-  );
+    execute $policy$
+      create policy "catalog-imports: owner/admin upload" on storage.objects
+        for insert to authenticated with check (
+          bucket_id = 'catalog-imports'
+          and public.is_venue_staff(
+            ((storage.foldername(name))[1])::uuid,
+            array['owner', 'admin']::public.venue_role[]
+          )
+        )
+    $policy$;
+    execute $policy$
+      create policy "catalog-imports: owner/admin read" on storage.objects
+        for select to authenticated using (
+          bucket_id = 'catalog-imports'
+          and public.is_venue_staff(
+            ((storage.foldername(name))[1])::uuid,
+            array['owner', 'admin']::public.venue_role[]
+          )
+        )
+    $policy$;
+  else
+    raise notice 'storage schema not initialised; skipping catalog-imports bucket and policies';
+  end if;
+end;
+$$;
+
+-- down: drop the tables above in reverse dependency order, the helper functions, the enums,
+-- and the catalog-imports bucket + its two storage.objects policies.
