@@ -1,0 +1,53 @@
+{
+  "common": {
+    "appName": "KJ Ballenby",
+    "tagline": "הקריוקי שלכם, בתור הוגן",
+    "loading": "טוען…",
+    "back": "חזרה",
+    "language": "שפה"
+  },
+  "landing": {
+    "title": "שרים בתור, בלי לריב על המיקרופון",
+    "subtitle": "סורקים את ה-QR שעל השולחן, בוחרים שיר, והאפליקציה מסדרת את התור בהגינות בין השולחנות.",
+    "cta": "כניסה",
+    "forVenues": "בעלי מקום? ",
+    "forVenuesLink": "ניהול המקום"
+  },
+  "login": {
+    "title": "כניסה",
+    "subtitle": "בחרו איך להתחבר",
+    "google": "המשך עם Google",
+    "microsoft": "המשך עם Microsoft",
+    "or": "או",
+    "phoneLabel": "מספר טלפון ישראלי",
+    "phonePlaceholder": "050-123-4567",
+    "sendCode": "שלחו לי קוד ב-SMS",
+    "codeLabel": "קוד האימות",
+    "codePlaceholder": "123456",
+    "verify": "אימות",
+    "changePhone": "שינוי מספר",
+    "codeSent": "שלחנו קוד ל-{phone}",
+    "errors": {
+      "invalidPhone": "הזינו מספר ישראלי תקין, לדוגמה 050-123-4567",
+      "invalidCode": "הקוד שגוי או שפג תוקפו",
+      "generic": "משהו השתבש. נסו שוב."
+    }
+  },
+  "app": {
+    "welcome": "שלום, {name}",
+    "noNight": "עוד לא הצטרפתם לערב. סרקו את ה-QR שעל השולחן.",
+    "signOut": "התנתקות"
+  },
+  "dj": {
+    "title": "לוח DJ",
+    "comingSoon": "התור החי יופיע כאן בשלב 2."
+  },
+  "admin": {
+    "title": "ניהול המקום",
+    "comingSoon": "הגדרות מקום, שולחנות וקטלוג יופיעו כאן בשלב 2."
+  },
+  "notFound": {
+    "title": "העמוד לא נמצא",
+    "home": "לעמוד הבית"
+  }
+}

@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b0a14;
+  --color-surface: #16142a;
+  --color-surface-2: #201d3a;
+  --color-border: #2d2950;
+  --color-text: #f4f1ff;
+  --color-muted: #a39ec4;
+  --color-brand: #ff4d8d;
+  --color-brand-2: #7c5cff;
+  --color-accent: #ffd166;
+  --color-danger: #ff6b6b;
+
+  --font-sans: "Heebo", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius-xl: 1.25rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-image:
+    radial-gradient(60rem 40rem at 10% -10%, rgba(124, 92, 255, 0.25), transparent 60%),
+    radial-gradient(50rem 35rem at 110% 10%, rgba(255, 77, 141, 0.2), transparent 60%);
+}
+
+/* Logical properties keep spacing correct in RTL and LTR. */
+.safe-area {
+  padding-inline: max(1rem, env(safe-area-inset-left), env(safe-area-inset-right));
+  padding-block-end: env(safe-area-inset-bottom);
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+}
+@utility btn-primary {
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-2));
+  color: white;
+}
+@utility btn-secondary {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.5;
+}
+
+@utility card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+@utility input {
+  width: 100%;
+  min-height: 3rem;
+  padding-inline: 1rem;
+  border-radius: 0.875rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+.input:focus {
+  outline: 2px solid var(--color-brand-2);
+  outline-offset: 1px;
+}

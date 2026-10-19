@@ -1,0 +1,53 @@
+{
+  "common": {
+    "appName": "KJ Ballenby",
+    "tagline": "Your karaoke, in a fair queue",
+    "loading": "Loading…",
+    "back": "Back",
+    "language": "Language"
+  },
+  "landing": {
+    "title": "Sing in turn, no fighting over the mic",
+    "subtitle": "Scan the QR code on your table, pick a song, and the app orders the queue fairly between tables.",
+    "cta": "Sign in",
+    "forVenues": "Run a venue? ",
+    "forVenuesLink": "Venue admin"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Choose how to continue",
+    "google": "Continue with Google",
+    "microsoft": "Continue with Microsoft",
+    "or": "or",
+    "phoneLabel": "Israeli phone number",
+    "phonePlaceholder": "050-123-4567",
+    "sendCode": "Text me a code",
+    "codeLabel": "Verification code",
+    "codePlaceholder": "123456",
+    "verify": "Verify",
+    "changePhone": "Change number",
+    "codeSent": "We sent a code to {phone}",
+    "errors": {
+      "invalidPhone": "Enter a valid Israeli number, e.g. 050-123-4567",
+      "invalidCode": "That code is wrong or has expired",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "app": {
+    "welcome": "Hi, {name}",
+    "noNight": "You haven't joined a night yet. Scan the QR code on your table.",
+    "signOut": "Sign out"
+  },
+  "dj": {
+    "title": "DJ dashboard",
+    "comingSoon": "The live queue lands here in phase 2."
+  },
+  "admin": {
+    "title": "Venue admin",
+    "comingSoon": "Venue settings, tables and catalog land here in phase 2."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "home": "Go home"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules
+.next
+dist
+coverage
+pnpm-lock.yaml
+.turbo
+supabase/.temp
+packages/db/src/database.types.ts
