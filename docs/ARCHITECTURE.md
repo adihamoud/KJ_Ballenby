@@ -70,7 +70,14 @@ Shared config: `tsconfig.base.json`, `.prettierrc`, `.editorconfig`, `.env.examp
 6. Optionally (DJ setting "auto-start next"), the first entry is set to `now_singing` with `started_at = now()`.
 7. Realtime `UPDATE` events propagate; the guest now at position 1 receives the "you're up next" banner/notification; the TV screen flips to the new singer.
 
-### 3.3 Catalog import
+### 3.3 DJ host action (approve, start, done, skip, pin, priority, move)
+
+1. The console applies the action optimistically with `apps/web/src/lib/dj/queue-model.ts`: a pure function that maps the action to the data changes in QUEUE_RULES.md section 8 and calls `reorder()` from `@kj/queue-engine`.
+2. The browser calls Server Action `performHostAction(nightId, action)`. The server reloads the night through the DJ's own session (RLS `is_venue_staff` authorizes), re-applies the same pure model against fresh data, and persists only the resulting field changes (`song_requests.status/priority`, `queue_entries.position/locked_by_host/started_at/ended_at`, plus one insert on approve).
+3. The server returns a fresh snapshot that replaces the optimistic state. Realtime events on `queue_entries`, `song_requests` and `nights` (filtered by night) and a 15 s poll only trigger refetches.
+4. Until the transactional RPC lands (roadmap phase 2), the writes are sequential statements; a failure mid-way is reported and the console refetches.
+
+### 3.4 Catalog import
 
 1. Admin uploads CSV/XML via the browser directly to Supabase Storage bucket `catalog-uploads/<venue_id>/<uuid>.<ext>` (RLS on storage objects: owner/admin of that venue).
 2. Server Action inserts `catalog_imports` (status `pending`) and invokes Edge Function `catalog-import` with the import id.

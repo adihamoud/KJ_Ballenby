@@ -42,8 +42,8 @@ Deliverables:
 - [~] Catalog search (tsvector + prefix) with language filter, fast on older phones (guest home search with YouTube versions and thumbnails via `search_songs`; perf check on real phones pending)
 - [ ] Request flow with singers, note, rules evaluation, localized rejection reasons
 - [ ] `@kj/queue-engine` complete: `evaluateRequest`, `reorder`, all reason codes, worked-example tests
-- [ ] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional)
-- [ ] DJ dashboard: realtime ordered queue, controls, copy-to-VirtualDJ action, open/close night
+- [~] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional) (host actions done as Server Actions over RLS in `apps/web/src/lib/dj/actions.ts`; submit and a transactional RPC pending)
+- [~] DJ dashboard: realtime ordered queue, controls, copy-to-VirtualDJ action, open/close night (console at `/dj` with queue manager, YouTube player and browser mixer; realtime invalidation + polling; drag-reorder is up/down buttons for now)
 - [ ] Guest queue view with position, estimated wait, realtime updates, "you're up next" banner + vibration
 - [ ] Guest cancel own request
 - [ ] Playwright e2e: join -> search -> request -> DJ done -> position updates

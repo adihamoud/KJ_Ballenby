@@ -103,6 +103,13 @@ Priority: **P1** = phase 2 core, **P2** = phase 3, **P3** = later.
 
 **H5. Manual add (P2).** As a DJ I can add a walk-up request on behalf of a guest or table without the guest having a phone.
 
+**H6. Player and mixer (P1).** As a DJ I can play the song's karaoke video and balance music and mic from the same screen, so a venue without VirtualDJ can still run the night.
+
+- The player cues the embeddable YouTube version of the song on the mic (or of the next entry while nobody sings) and never autoplays; the DJ presses play when the singer is ready.
+- Version chips switch between the song's linked videos; non-embeddable ones open on YouTube.
+- Mixer: music volume, tempo and a 3 s fade-out; a browser microphone channel (gain, echo, level meter) through Web Audio; one master mute. The browser only reaches the default output, so the venue's hardware mixer stays in charge of the PA.
+- Queue, player and mixer share one screen on a laptop or 10-inch tablet and become tabs on a phone.
+
 ### 3.3 Venue admin
 
 **A1. Catalog upload (P1).** As an admin I upload my song list and guests can search it minutes later.

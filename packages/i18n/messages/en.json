@@ -98,8 +98,131 @@
     "signOut": "Sign out"
   },
   "dj": {
-    "title": "DJ dashboard",
-    "comingSoon": "The live queue lands here in phase 2."
+    "title": "DJ console",
+    "metaTitle": "DJ console",
+    "demoBadge": "Demo",
+    "demoHint": "Supabase isn't configured, so changes stay in this browser.",
+    "signOut": "Sign out",
+    "connection": {
+      "live": "Live",
+      "reconnecting": "Reconnecting…",
+      "polling": "Polling"
+    },
+    "night": {
+      "on": "Night is on",
+      "off": "No open night",
+      "since": "since {time}",
+      "open": "Open night",
+      "close": "Close night",
+      "confirmClose": "Close the night? {count} waiting requests will be skipped.",
+      "closedTitle": "The night hasn't started",
+      "closedBody": "Open a night so guests can request songs. The queue, player and mixer wake up with it."
+    },
+    "tabs": {
+      "queue": "Queue",
+      "player": "Player",
+      "mixer": "Mixer"
+    },
+    "notStaff": {
+      "title": "You're not on any venue's staff",
+      "body": "Ask the venue owner to add you as a DJ, then reload this page."
+    },
+    "unavailable": {
+      "title": "We couldn't load the queue",
+      "body": "Check the connection and try again.",
+      "retry": "Try again"
+    },
+    "errors": {
+      "unavailable": "The change didn't reach the server. The queue was reloaded.",
+      "staleNight": "The night changed. The queue was reloaded.",
+      "demo": "Demo mode: nothing is saved.",
+      "notStaff": "You're no longer staff at this venue."
+    },
+    "queue": {
+      "title": "Queue",
+      "count": "{count, plural, =0 {empty} one {# song} other {# songs}}",
+      "nowSinging": "Now singing",
+      "nothingSinging": "Nobody is on the mic",
+      "nothingSingingHint": "Press Start on the next song when the singer is ready.",
+      "upNext": "Up next",
+      "pending": "Awaiting approval",
+      "empty": "The queue is empty. Guest requests show up here within seconds.",
+      "history": "Sung tonight",
+      "historyEmpty": "Nothing yet.",
+      "table": "Table {label}",
+      "walkUp": "Walk-up",
+      "priority": "Priority {n}",
+      "pinned": "Pinned",
+      "startedAgo": "started {time}",
+      "autoStart": "Auto-start the next song after Done",
+      "actions": {
+        "start": "Start",
+        "done": "Done",
+        "doneNext": "Done, next",
+        "skip": "Skip",
+        "approve": "Approve",
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "priorityUp": "Raise priority",
+        "priorityDown": "Lower priority",
+        "copy": "Copy for VirtualDJ",
+        "copied": "Copied"
+      }
+    },
+    "player": {
+      "title": "Player",
+      "status": {
+        "loading": "Loading player…",
+        "idle": "Idle",
+        "cued": "Cued",
+        "playing": "Playing",
+        "paused": "Paused",
+        "ended": "Ended",
+        "error": "Playback error"
+      },
+      "error": "YouTube couldn't play this version. Try another one.",
+      "empty": "Nothing to play",
+      "emptyHint": "Start a song from the queue, or wait for the next request.",
+      "onMic": "On the mic",
+      "nextUp": "Next up",
+      "versions": "Karaoke versions",
+      "versionN": "Version {n}",
+      "notEmbeddable": "Opens on YouTube",
+      "noVideos": "No karaoke video is linked to this song. Load it in VirtualDJ.",
+      "play": "Play",
+      "pause": "Pause",
+      "restart": "Restart",
+      "seek": "Position",
+      "startSong": "Start song",
+      "done": "Done",
+      "doneNext": "Done, next"
+    },
+    "mixer": {
+      "title": "Mixer",
+      "music": "Music",
+      "mic": "Mic",
+      "master": "Master",
+      "volume": "Volume",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "tempo": "Tempo",
+      "fadeOut": "Fade out",
+      "fading": "Fading…",
+      "enableMic": "Enable mic",
+      "disableMic": "Disable mic",
+      "micDenied": "Microphone access was denied. Allow it in the browser's site settings.",
+      "micUnsupported": "This browser can't route the microphone.",
+      "micHint": "The mic plays through the default speakers via the browser; the venue's hardware mixer keeps driving the PA.",
+      "gain": "Gain",
+      "echo": "Echo",
+      "echoAmount": "Echo amount",
+      "level": "Level",
+      "masterMute": "Mute everything",
+      "masterUnmute": "Unmute everything",
+      "masterHint": "Cuts music and mic together. Use it between songs or when the host talks."
+    }
   },
   "admin": {
     "title": "Venue admin",
