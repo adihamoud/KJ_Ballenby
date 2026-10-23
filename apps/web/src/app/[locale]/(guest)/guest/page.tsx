@@ -1,8 +1,10 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { SongSearch } from "@/components/SongSearch";
 import { resolveTable } from "@/lib/guest/resolve";
 import { getGuestSession } from "@/lib/guest/session";
+import { searchSongs } from "@/lib/guest/songs";
 
 // Reads the guest cookie and the live night status; never prerender.
 export const dynamic = "force-dynamic";
@@ -21,7 +23,10 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
   if (!session) return redirect({ href: "/join", locale });
 
   const t = await getTranslations();
-  const live = await resolveTable(session.joinCode);
+  const [live, catalog] = await Promise.all([
+    resolveTable(session.joinCode),
+    searchSongs(session.venueId, ""),
+  ]);
   const status: "open" | "closed" | "gone" | "unknown" = live.ok
     ? live.table.night_open
       ? "open"
@@ -58,6 +63,8 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
         <h2 className="text-lg font-semibold">{t("guest.queueTitle")}</h2>
         <p className="text-muted text-sm">{t("guest.queueEmpty")}</p>
       </section>
+
+      <SongSearch initialSongs={catalog.ok ? catalog.songs : []} initialError={!catalog.ok} />
 
       <div className="mt-auto flex flex-col gap-3">
         <Link href="/join" className="btn btn-secondary">

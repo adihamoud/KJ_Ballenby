@@ -64,7 +64,7 @@
     "title": "Your table: {table}",
     "joinedAs": "Joined as {name}",
     "status": {
-      "open": "The night is on! Song search and requests land here next.",
+      "open": "The night is on! Pick a song from the catalog below. Requests land next.",
       "closed": "The night hasn't started yet. We'll update when the DJ opens the queue.",
       "gone": "This table is no longer active. Scan a new QR code or ask the staff for a code.",
       "unknown": "We couldn't check the night status. We'll try again on the next refresh."
@@ -72,7 +72,25 @@
     "queueTitle": "Queue",
     "queueEmpty": "No songs in the queue yet.",
     "switchTable": "Switch table",
-    "leave": "Leave table"
+    "leave": "Leave table",
+    "search": {
+      "title": "Find a song",
+      "placeholder": "Song title or artist",
+      "languageFilter": "Filter by language",
+      "all": "All",
+      "lang": {
+        "he": "Hebrew",
+        "en": "English"
+      },
+      "noResults": "No songs match “{query}”. Try another word.",
+      "versions": "Versions",
+      "versionN": "Version {n}",
+      "openOnYoutube": "Open {title} on YouTube",
+      "errors": {
+        "noSession": "Join a table to search the catalog.",
+        "unavailable": "Search is unavailable right now. Try again in a moment."
+      }
+    }
   },
   "app": {
     "welcome": "Hi, {name}",

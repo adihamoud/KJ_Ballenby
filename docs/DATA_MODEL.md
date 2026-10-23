@@ -122,6 +122,25 @@ Venue catalog. Guests can only pick rows from their venue.
 
 Unique `(venue_id, title, artist)`.
 
+### song_videos
+
+YouTube karaoke versions of a song. One song can have several (different channels, keys, with or without guide vocals); the watch URL `https://www.youtube.com/watch?v=<youtube_id>` and the thumbnail `https://i.ytimg.com/vi/<youtube_id>/mqdefault.jpg` are derived in code.
+
+| Column                  | Type                          | Notes                                                        |
+| ----------------------- | ----------------------------- | ------------------------------------------------------------ |
+| id                      | uuid PK                       |                                                              |
+| venue_id                | uuid                          | FK venues (denormalized for RLS)                             |
+| song_id                 | uuid                          | FK songs, cascade delete                                     |
+| youtube_id              | text not null                 | 11-char video id, check constraint                           |
+| label                   | text null                     | Shown as the version chip, e.g. `Sing King`, `קריוקי פסנתר`  |
+| duration_sec            | int null                      | Of this version                                              |
+| embeddable              | boolean not null default true | false when the channel disables embedding (link still works) |
+| sort_order              | int not null default 0        | Display order; 0 is the default version                      |
+| is_active               | boolean not null default true |                                                              |
+| created_at / updated_at | timestamptz                   |                                                              |
+
+Unique `(song_id, youtube_id)`. Index `(song_id, sort_order) where is_active`.
+
 ### song_requests
 
 | Column       | Type                            | Notes                                                                                     |
@@ -214,6 +233,7 @@ Helper functions (`security definer`, stable):
 - `is_venue_staff(venue_id, roles text[])` - true if `auth.uid()` is in `venue_members` for the venue with one of the roles.
 - `is_night_participant(night_id)` - true if `auth.uid()` is in `group_members` of an active group of that night and the night is `open`.
 - `is_venue_participant(venue_id)` - true if the user participates in the venue's open night.
+- `search_songs(venue_id, query, language, limit)` - callable by `anon`; prefix full-text match on `songs.search` plus a substring fallback, active songs of an active venue only, each row with its `song_videos` as a jsonb array. Empty query browses alphabetically. Backs guest catalog search (ADR-008).
 - `resolve_table(code text)` - callable by `anon`; maps a `qr_token` (uuid) or `join_code` (uppercased) to `{table_id, table_label, join_code, venue_id, venue_name, venue_slug, night_id, night_open}` for an active table of an active venue, else no row. Backs the guest join flow before sign-in (ADR-008).
 
 | Table           | select                                                                                                        | insert                                                                            | update                                                                         | delete                                          |
@@ -226,6 +246,7 @@ Helper functions (`security definer`, stable):
 | groups          | participants of the night and staff                                                                           | authenticated user in the venue's open night (via RPC `join_table`)               | creator or staff                                                               | -                                               |
 | group_members   | members of the same group and staff                                                                           | self (RPC)                                                                        | -                                                                              | self (leave) or staff                           |
 | songs           | participants and staff (`is_active` for guests)                                                               | owner/admin, service role                                                         | owner/admin, service role                                                      | owner/admin                                     |
+| song_videos     | same as songs; anonymous search via RPC `search_songs`                                                        | owner/admin                                                                       | owner/admin                                                                    | owner/admin                                     |
 | song_requests   | participants of the night and staff                                                                           | guest for self (`requested_by = auth.uid()`), via RPC that runs the engine; staff | guest: own row, only to `cancelled` from `pending/approved/queued`; staff: any | -                                               |
 | queue_entries   | participants of the night and staff                                                                           | staff / RPC                                                                       | staff / RPC                                                                    | staff                                           |
 | queue_rules     | staff                                                                                                         | owner/admin                                                                       | owner/admin                                                                    | -                                               |

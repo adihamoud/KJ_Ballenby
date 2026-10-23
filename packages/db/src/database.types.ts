@@ -21,6 +21,38 @@ export type RequestStatus =
 export type ImportStatus = "pending" | "processing" | "done" | "failed";
 export type AppLocale = "he" | "en";
 
+export interface SongVideoRow {
+  id: string;
+  venue_id: string;
+  song_id: string;
+  youtube_id: string;
+  label: string | null;
+  duration_sec: number | null;
+  embeddable: boolean;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** One YouTube version inside `SearchSongRow.videos` (jsonb from `search_songs`). */
+export interface SongVideoSummary {
+  youtube_id: string;
+  label: string | null;
+  duration_sec: number | null;
+  embeddable: boolean;
+}
+
+/** Result row of `search_songs(p_venue_id, p_query, p_language, p_limit)`. */
+export interface SearchSongRow {
+  id: string;
+  title: string;
+  artist: string;
+  language: string | null;
+  duration_sec: number | null;
+  videos: SongVideoSummary[];
+}
+
 /** Result of `resolve_table(p_code)`: a QR token or join code mapped to its venue and table. */
 export interface ResolvedTableRow {
   table_id: string;
@@ -221,6 +253,15 @@ export interface Database {
         Update: Partial<SongRow>;
         Relationships: [];
       };
+      song_videos: {
+        Row: Row<SongVideoRow>;
+        Insert: Insert<
+          SongVideoRow,
+          Timestamps | "id" | "label" | "duration_sec" | "embeddable" | "sort_order" | "is_active"
+        >;
+        Update: Partial<SongVideoRow>;
+        Relationships: [];
+      };
       song_requests: {
         Row: Row<SongRequestRow>;
         Insert: Insert<SongRequestRow, Timestamps | "id" | "group_id" | "table_id" | "singers" | "note" | "status" | "priority">;
@@ -259,6 +300,10 @@ export interface Database {
       resolve_table: {
         Args: { p_code: string };
         Returns: ResolvedTableRow[];
+      };
+      search_songs: {
+        Args: { p_venue_id: string; p_query?: string; p_language?: string | null; p_limit?: number };
+        Returns: SearchSongRow[];
       };
     };
     Enums: {

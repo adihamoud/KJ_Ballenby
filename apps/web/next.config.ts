@@ -6,6 +6,10 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@kj/i18n", "@kj/db", "@kj/queue-engine"],
+  images: {
+    // Song thumbnails come straight from YouTube's image CDN (derived from the video id).
+    remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" }],
+  },
   headers: async () => [
     {
       source: "/(.*)",

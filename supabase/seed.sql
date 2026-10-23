@@ -42,5 +42,12 @@ values
   ('00000000-0000-0000-0000-000000000001', 'שיר לשלום', 'להקת הנח"ל', 'he', 230),
   ('00000000-0000-0000-0000-000000000001', 'אבניבי', 'יזהר כהן', 'he', 180),
   ('00000000-0000-0000-0000-000000000001', 'דיווה', 'דנה אינטרנשיונל', 'he', 180),
-  ('00000000-0000-0000-0000-000000000001', 'Toy', 'Netta', 'en', 180)
+  ('00000000-0000-0000-0000-000000000001', 'Toy', 'Netta', 'en', 180),
+  ('00000000-0000-0000-0000-000000000001', 'Sweet Caroline', 'Neil Diamond', 'en', 225),
+  ('00000000-0000-0000-0000-000000000001', 'Don''t Stop Believin''', 'Journey', 'en', 275),
+  ('00000000-0000-0000-0000-000000000001', 'I Will Survive', 'Gloria Gaynor', 'en', 230),
+  ('00000000-0000-0000-0000-000000000001', 'Livin'' on a Prayer', 'Bon Jovi', 'en', 273)
 on conflict do nothing;
+
+-- YouTube karaoke versions for the demo catalog are inserted by migration
+-- 20261023120000_song_videos_and_search.sql (they reference the rows above by title + artist).

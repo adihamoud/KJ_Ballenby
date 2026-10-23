@@ -39,7 +39,7 @@ Deliverables:
 - [~] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home done without sign-in, see ADR-008; admin pages and QR sheet pending)
 - [ ] Groups: auto-join table group, ad hoc groups with share link, member list
 - [ ] Catalog upload (CSV + VirtualDJ XML) to Storage; `catalog-import` Edge Function; import status UI
-- [ ] Catalog search (tsvector + prefix) with language filter, fast on older phones
+- [~] Catalog search (tsvector + prefix) with language filter, fast on older phones (guest home search with YouTube versions and thumbnails via `search_songs`; perf check on real phones pending)
 - [ ] Request flow with singers, note, rules evaluation, localized rejection reasons
 - [ ] `@kj/queue-engine` complete: `evaluateRequest`, `reorder`, all reason codes, worked-example tests
 - [ ] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional)

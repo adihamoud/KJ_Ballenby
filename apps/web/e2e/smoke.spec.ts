@@ -120,3 +120,39 @@ test.describe("guest join (demo tables, no Supabase)", () => {
     await expect(page).toHaveURL(/\/en\/join$/);
   });
 });
+
+test.describe("guest catalog search (demo catalog, no Supabase)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/en/join");
+    await page.getByLabel(/table code/i).fill("DEMO2");
+    await page.getByLabel(/what should we call you/i).fill("Dana");
+    await page.getByRole("button", { name: /^join$/i }).click();
+    await expect(page).toHaveURL(/\/en\/guest$/);
+  });
+
+  test("lists the catalog with YouTube thumbnails and version links", async ({ page }) => {
+    const cards = page.getByTestId("song-card");
+    await expect(cards.first()).toBeVisible();
+    expect(await cards.count()).toBeGreaterThanOrEqual(10);
+
+    const bohemian = cards.filter({ hasText: "Bohemian Rhapsody" });
+    await expect(bohemian.locator("img")).toHaveAttribute("src", /i\.ytimg\.com|_next\/image/);
+    const versions = bohemian.getByRole("link", { name: /sing king|starlight|zoom/i });
+    expect(await versions.count()).toBeGreaterThanOrEqual(2);
+    await expect(versions.first()).toHaveAttribute("href", /youtube\.com\/watch\?v=[\w-]{11}/);
+  });
+
+  test("filters as you type and by language, in Hebrew too", async ({ page }) => {
+    await page.getByRole("searchbox", { name: /find a song/i }).fill("queen");
+    await expect(page.getByTestId("song-card")).toHaveCount(2);
+    await expect(page.getByText("Dancing Queen")).toBeVisible();
+
+    await page.getByRole("searchbox", { name: /find a song/i }).fill("");
+    await page.getByRole("button", { name: /^hebrew$/i }).click();
+    await expect(page.getByText("הללויה")).toBeVisible();
+    await expect(page.getByText("Wonderwall")).toHaveCount(0);
+
+    await page.getByRole("searchbox", { name: /find a song/i }).fill("zzzz");
+    await expect(page.getByText(/no songs match/i)).toBeVisible();
+  });
+});
