@@ -28,6 +28,8 @@
     "verify": "Verify",
     "changePhone": "Change number",
     "codeSent": "We sent a code to {phone}",
+    "guestHint": "Just here to sing? Guests don't need an account.",
+    "guestCta": "Join as guest",
     "errors": {
       "invalidPhone": "Enter a valid Israeli number, e.g. 050-123-4567",
       "invalidCode": "That code is wrong or has expired",

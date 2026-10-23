@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { LoginForm } from "./LoginForm";
 
@@ -28,6 +28,13 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
         <p className="text-muted mt-1">{t("subtitle")}</p>
       </div>
       <LoginForm locale={locale} configured={supabaseConfigured} />
+
+      <section className="card flex flex-col gap-3 p-5 text-center">
+        <p className="text-muted text-sm">{t("guestHint")}</p>
+        <Link href="/join" className="btn btn-secondary" data-testid="guest-cta">
+          {t("guestCta")}
+        </Link>
+      </section>
     </main>
   );
 }
