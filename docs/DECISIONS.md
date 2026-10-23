@@ -12,6 +12,7 @@ Format: context, decision, consequences. Status is `accepted` unless noted. New 
 | [ADR-006](#adr-006-fractional-positions-for-queue-ordering)    | Fractional positions for queue ordering    | 2026-10-19 |
 | [ADR-007](#adr-007-hebrew-first-rtl-with-next-intl)            | Hebrew-first RTL with next-intl            | 2026-10-19 |
 | [ADR-008](#adr-008-guest-access-before-sign-in)                | Guest access before sign-in                | 2026-10-23 |
+| [ADR-009](#adr-009-anonymous-sign-in-as-the-guest-identity)    | Anonymous sign-in as the guest identity    | 2026-10-23 |
 
 ---
 
@@ -189,3 +190,56 @@ When song requests ship (phase 2), the guest identity becomes server-verifiable:
 - Positive: `resolve_table` is the single lookup for QR and code, reused by the signed-in flow later.
 - Negative: the cookie is unsigned and client-forgeable, so it must never authorize a write; the request flow needs the upgrade above before any guest mutation.
 - Negative: a join code is unique per venue, not globally; while codes are resolved without a venue context, the first active match (by creation time) wins. Printed QR tokens are globally unique and unaffected.
+
+## ADR-009: Anonymous sign-in as the guest identity
+
+Date: 2026-10-23
+
+### Context
+
+ADR-008 lets a guest join a table with nothing but an unsigned `kj_guest` cookie, and states that the
+cookie must never authorize a write. The song request flow is the first guest write: it inserts
+`song_requests` (and `queue_entries` when no approval is needed) and later cancels them. The schema and
+RLS policies from the start assume `song_requests.requested_by` is an `auth.users` id and that the guest
+is a member of a group in the night (`is_night_participant`). Two options were on the table: a signed
+guest token minted by the join action and verified by our own code, or Supabase anonymous sign-in.
+
+### Decision
+
+The join action signs the guest in **anonymously with Supabase Auth** (`signInAnonymously`, display
+name in the user metadata) when the phone has no session yet. The anonymous user is a real
+`auth.users` row with role `authenticated`, so every existing policy works as written: `requested_by =
+auth.uid()`, `is_night_participant`, realtime filtered by RLS, staff reading participants' profiles.
+The `kj_guest` cookie stays for display only (table, venue, chosen name) plus a random `guestId` that
+keys the in-memory demo night when Supabase is not configured.
+
+Two RPCs (`security definer`, callable by `authenticated`) complete the flow:
+
+- `join_table(table_id)` finds or creates the table's group in the venue's open night and puts the
+  caller in it (one table per guest per night). The join action calls it, and the request action calls it
+  again so a guest who joined before the DJ opened the night still passes `is_night_participant`.
+- `submit_request(night_id, song_id, singers, note, position)` inserts the request and its queue entry in
+  one transaction. It reads the rules from `nights.rules_snapshot`, re-checks every guest-facing rule of
+  QUEUE_RULES.md section 3 in the engine's order (cutoff, song active, duets, singer count, per-user and
+  per-table quotas under a per-user advisory lock, cooldown, duplicate window), derives
+  `table_id`/`group_id` from the caller's membership and never lets the caller place an entry ahead of
+  the current tail. The Server Action runs `evaluateRequest` from `@kj/queue-engine` first and shows the
+  guest the reason; the RPC exists so a direct call with the guest's own session cannot do anything the
+  engine would have refused. The engine and its tests stay the specification; the SQL mirrors it and
+  must change with it.
+
+Anonymous users are upgraded to a full account on first social or SMS login (`linkIdentity` /
+`updateUser`), which keeps their requests and history across nights. The Supabase project must have
+**Anonymous sign-ins** enabled (Authentication > Providers); `docs/SETUP_ACCOUNTS.md` has the step.
+
+### Consequences
+
+- Positive: no custom token format, signing key or verification code to maintain; RLS and realtime
+  authorization stay uniform between guests and staff.
+- Positive: the upgrade path to a named account is a Supabase primitive, not a data migration.
+- Negative: every joining phone creates an `auth.users` row; a scheduled cleanup of anonymous users
+  older than 30 days with no requests belongs in phase 3.
+- Negative: anonymous sign-in must be enabled per project and is rate-limited by Supabase (30 per hour per
+  IP by default); venues with many guests behind one NAT need the limit raised.
+- Negative: the request flow needs a server round-trip for identity; when sign-in fails (provider
+  disabled, rate limit) the guest can still browse but gets a clear "unavailable" message on request.

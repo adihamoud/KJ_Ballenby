@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { useNightChanges } from "@/components/useNightChanges";
 import { closeNight, openNight, performHostAction, refreshDjSnapshot } from "@/lib/dj/actions";
 import type { DjActionResponse } from "@/lib/dj/actions";
 import { demoSnapshot } from "@/lib/dj/demo-night";
@@ -15,11 +16,7 @@ import { useMicChannel } from "./useMicChannel";
 import { useYouTubePlayer } from "./useYouTubePlayer";
 
 type Tab = "queue" | "player" | "mixer";
-type Connection = "live" | "reconnecting" | "polling";
 type ErrorKey = Extract<DjActionResponse, { ok: false }>["error"];
-
-const POLL_MS = 15_000;
-const REALTIME_DEBOUNCE_MS = 300;
 
 /**
  * The DJ console: queue manager, player and mixer on one screen.
@@ -39,12 +36,12 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
   const [tab, setTab] = useState<Tab>("queue");
   const [autoStart, setAutoStart] = useState(true);
   const [error, setError] = useState<ErrorKey | null>(null);
-  const [connection, setConnection] = useState<Connection>("polling");
   const [pending, startTransition] = useTransition();
   const [chosenVideo, setChosenVideo] = useState<Record<string, string>>({});
   const [masterMuted, setMasterMuted] = useState(false);
 
   const isLive = snapshot.mode === "live";
+  const persisted = snapshot.persisted;
   const night = snapshot.night?.status === "open" ? snapshot.night : null;
 
   const applyResponse = useCallback((res: DjActionResponse) => {
@@ -56,66 +53,17 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
   }, []);
 
   const refresh = useCallback(() => {
-    if (!isLive) return;
+    if (!persisted) return;
     startTransition(async () => applyResponse(await refreshDjSnapshot()));
-  }, [applyResponse, isLive]);
+  }, [applyResponse, persisted]);
 
-  // Realtime: any change to tonight's rows is a hint to refetch. Poll as a fallback.
-  useEffect(() => {
-    if (!isLive) return;
-    const poll = setInterval(refresh, POLL_MS);
-    if (!night) return () => clearInterval(poll);
-
-    let debounce: ReturnType<typeof setTimeout> | null = null;
-    const hint = () => {
-      if (debounce) clearTimeout(debounce);
-      debounce = setTimeout(refresh, REALTIME_DEBOUNCE_MS);
-    };
-    let cleanup: (() => void) | null = null;
-    import("@/lib/supabase/client").then(({ getBrowserSupabase }) => {
-      const supabase = getBrowserSupabase();
-      const channel = supabase
-        .channel(`dj-night-${night.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "queue_entries",
-            filter: `night_id=eq.${night.id}`,
-          },
-          hint,
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "song_requests",
-            filter: `night_id=eq.${night.id}`,
-          },
-          hint,
-        )
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "nights", filter: `id=eq.${night.id}` },
-          hint,
-        )
-        .subscribe((status) => {
-          if (status === "SUBSCRIBED") setConnection("live");
-          else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            setConnection("reconnecting");
-            hint();
-          } else if (status === "CLOSED") setConnection("polling");
-        });
-      cleanup = () => void supabase.removeChannel(channel);
-    });
-    return () => {
-      clearInterval(poll);
-      if (debounce) clearTimeout(debounce);
-      cleanup?.();
-    };
-  }, [isLive, night, refresh]);
+  // Realtime (live) and polling (anything persisted) only ever trigger a refetch.
+  const connection = useNightChanges({
+    nightId: night?.id ?? null,
+    enabled: persisted,
+    realtime: isLive,
+    onRefresh: refresh,
+  });
 
   const run = useCallback(
     (action: HostAction) => {
@@ -124,7 +72,7 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
       if (!currentNight || currentNight.status !== "open") return;
       const optimistic = applyHostAction(current, action, new Date().toISOString());
       setSnapshot(optimistic.snapshot);
-      if (current.mode !== "live") return;
+      if (!current.persisted) return;
       startTransition(async () => {
         const res = await performHostAction(currentNight.id, action);
         applyResponse(res);
@@ -139,7 +87,7 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
     if (current.night?.status === "open") {
       const waiting = current.items.length;
       if (waiting > 0 && !window.confirm(t("night.confirmClose", { count: waiting }))) return;
-      if (current.mode !== "live") {
+      if (!current.persisted) {
         setSnapshot({
           ...current,
           night: { ...current.night, status: "closed" },
@@ -151,7 +99,7 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
       const nightId = current.night.id;
       startTransition(async () => applyResponse(await closeNight(nightId)));
     } else {
-      if (current.mode !== "live") {
+      if (!current.persisted) {
         setSnapshot(demoSnapshot());
         return;
       }

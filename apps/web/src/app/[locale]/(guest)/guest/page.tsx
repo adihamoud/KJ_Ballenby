@@ -1,7 +1,11 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
+import { GuestNightProvider } from "@/components/GuestNightContext";
+import { GuestQueue } from "@/components/GuestQueue";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { SongSearch } from "@/components/SongSearch";
+import { loadGuestNight } from "@/lib/guest/night";
+import { guestQueueView, sheetLimits } from "@/lib/guest/queue-state";
 import { resolveTable } from "@/lib/guest/resolve";
 import { getGuestSession } from "@/lib/guest/session";
 import { searchSongs } from "@/lib/guest/songs";
@@ -14,7 +18,7 @@ export async function generateMetadata() {
   return { title: t("metaTitle") };
 }
 
-/** Guest home: the table you joined, whether the night is on, and (next) the queue. */
+/** Guest home: the table you joined, your place in the queue, and the catalog to request from. */
 export default async function GuestHomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -23,9 +27,10 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
   if (!session) return redirect({ href: "/join", locale });
 
   const t = await getTranslations();
-  const [live, catalog] = await Promise.all([
+  const [live, catalog, night] = await Promise.all([
     resolveTable(session.joinCode),
     searchSongs(session.venueId, ""),
+    loadGuestNight(session),
   ]);
   const status: "open" | "closed" | "gone" | "unknown" = live.ok
     ? live.table.night_open
@@ -34,6 +39,10 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
     : live.reason === "not_found"
       ? "gone"
       : "unknown";
+
+  const view = night.ok ? guestQueueView(night.night.snapshot, night.night.userId) : null;
+  const canRequest = status === "open" && view !== null && view.nightOpen;
+  const limits = night.ok ? sheetLimits(night.night.snapshot.rules) : null;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6">
@@ -57,14 +66,33 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
         <p className={status === "gone" ? "text-danger" : "text-muted"}>
           {t(`guest.status.${status}`)}
         </p>
+        {status === "open" && !night.ok && (
+          <p className="text-danger mt-2 text-sm">{t(`guest.queue.errors.${night.reason}`)}</p>
+        )}
       </section>
 
-      <section className="card flex flex-col gap-2 p-5">
-        <h2 className="text-lg font-semibold">{t("guest.queueTitle")}</h2>
-        <p className="text-muted text-sm">{t("guest.queueEmpty")}</p>
-      </section>
-
-      <SongSearch initialSongs={catalog.ok ? catalog.songs : []} initialError={!catalog.ok} />
+      {view ? (
+        <GuestNightProvider initial={view}>
+          <GuestQueue />
+          <SongSearch
+            initialSongs={catalog.ok ? catalog.songs : []}
+            initialError={!catalog.ok}
+            request={
+              canRequest && limits
+                ? { guestName: session.name, maxSingers: limits.maxSingers }
+                : undefined
+            }
+          />
+        </GuestNightProvider>
+      ) : (
+        <>
+          <section className="card flex flex-col gap-2 p-5">
+            <h2 className="text-lg font-semibold">{t("guest.queue.title")}</h2>
+            <p className="text-muted text-sm">{t("guest.queue.closed")}</p>
+          </section>
+          <SongSearch initialSongs={catalog.ok ? catalog.songs : []} initialError={!catalog.ok} />
+        </>
+      )}
 
       <div className="mt-auto flex flex-col gap-3">
         <Link href="/join" className="btn btn-secondary">

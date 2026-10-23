@@ -4,22 +4,31 @@ import Image from "next/image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { SearchSongRow } from "@kj/db";
+import { useOptionalGuestNight } from "@/components/GuestNightContext";
 import { searchSongsAction } from "@/lib/guest/song-actions";
+import { RequestSheet } from "./RequestSheet";
 import { SONG_LANGUAGES, type SongLanguage } from "@/lib/guest/song-query";
 import { formatDuration, youtubeThumbnailUrl, youtubeWatchUrl } from "@/lib/youtube";
 
 const DEBOUNCE_MS = 250;
 
-export function SongSearch({
-  initialSongs,
-  initialError = false,
-}: {
+export interface SongSearchProps {
   initialSongs: SearchSongRow[];
   /** True when the server-side catalog load failed (shows the unavailable message). */
   initialError?: boolean;
-}) {
+  /** Request options; omit to browse only (no open night, not joined). */
+  request?: {
+    guestName: string;
+    maxSingers: number;
+  };
+}
+
+export function SongSearch({ initialSongs, initialError = false, request }: SongSearchProps) {
   const t = useTranslations("guest.search");
+  const night = useOptionalGuestNight();
   const [query, setQuery] = useState("");
+  const [requesting, setRequesting] = useState<SearchSongRow | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [language, setLanguage] = useState<SongLanguage | null>(null);
   const [songs, setSongs] = useState<SearchSongRow[]>(initialSongs);
   const [error, setError] = useState<string | null>(initialError ? t("errors.unavailable") : null);
@@ -42,11 +51,23 @@ export function SongSearch({
     return () => clearTimeout(handle);
   }, [query, language, t]);
 
+  useEffect(() => {
+    if (!toast) return;
+    const handle = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(handle);
+  }, [toast]);
+
   return (
     <section className="flex flex-col gap-3" aria-labelledby="song-search-title">
       <h2 id="song-search-title" className="text-lg font-semibold">
         {t("title")}
       </h2>
+
+      {toast && (
+        <p role="status" className="bg-brand-2/20 text-text rounded-xl px-3 py-2 text-sm">
+          {toast}
+        </p>
+      )}
 
       <input
         className="input"
@@ -82,12 +103,31 @@ export function SongSearch({
         aria-busy={pending}
       >
         {songs.map((song) => (
-          <SongCard key={song.id} song={song} />
+          <SongCard
+            key={song.id}
+            song={song}
+            onRequest={request ? () => setRequesting(song) : undefined}
+          />
         ))}
       </ul>
 
       {!error && songs.length === 0 && (
         <p className="text-muted text-sm">{t("noResults", { query })}</p>
+      )}
+
+      {request && requesting && (
+        <RequestSheet
+          song={requesting}
+          guestName={request.guestName}
+          maxSingers={request.maxSingers}
+          onClose={() => setRequesting(null)}
+          onRequested={(res) => {
+            setRequesting(null);
+            setToast(t("requested", { title: requesting.title }));
+            // The response already carries the guest's fresh view: hand it to the queue card.
+            night?.setView(res.view);
+          }}
+        />
       )}
     </section>
   );
@@ -116,7 +156,7 @@ function FilterChip({
   );
 }
 
-function SongCard({ song }: { song: SearchSongRow }) {
+function SongCard({ song, onRequest }: { song: SearchSongRow; onRequest?: () => void }) {
   const t = useTranslations("guest.search");
   const primary = song.videos[0];
   const duration = formatDuration(primary?.duration_sec ?? song.duration_sec);
@@ -171,6 +211,17 @@ function SongCard({ song }: { song: SearchSongRow }) {
               </li>
             ))}
           </ul>
+        )}
+
+        {onRequest && (
+          <button
+            type="button"
+            onClick={onRequest}
+            className="btn btn-primary mt-2 min-h-10 self-start px-4 text-sm"
+            aria-label={t("requestSong", { title: song.title })}
+          >
+            {t("request")}
+          </button>
         )}
       </div>
     </li>

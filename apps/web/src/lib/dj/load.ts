@@ -1,5 +1,7 @@
 import { parseRules } from "@kj/queue-engine";
 import type { QueueEntryRow, SongRequestRow, SongRow, SongVideoRow, VenueTableRow } from "@kj/db";
+import { getDemoNight } from "@/lib/demo/night-store";
+import { getGuestSession } from "@/lib/guest/session";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { demoSnapshot } from "./demo-night";
 import type { DjHistoryItem, DjQueueItem, DjSnapshot } from "./types";
@@ -16,7 +18,11 @@ const ACTIVE_STATUSES = ["pending", "queued", "now_singing"] as const;
  */
 export async function loadDjSnapshot(): Promise<DjLoadResult> {
   const supabase = await createServerSupabase();
-  if (!supabase) return { ok: true, snapshot: demoSnapshot() };
+  if (!supabase) {
+    // One demo night per browser: a guest who joined in this browser sees their requests here.
+    const guest = await getGuestSession();
+    return { ok: true, snapshot: guest ? getDemoNight(guest.guestId) : demoSnapshot() };
+  }
 
   const { data: membership, error: memberError } = await supabase
     .from("venue_members")
@@ -45,17 +51,19 @@ export async function loadDjSnapshot(): Promise<DjLoadResult> {
 
   const night = nightRes.data;
   const rules = parseRules(night ? night.rules_snapshot : (rulesRes.data?.config ?? {}));
-  const tableLabels = new Map(
+  const tables = Object.fromEntries(
     (tablesRes.data as Pick<VenueTableRow, "id" | "label">[]).map((t) => [t.id, t.label]),
   );
   const generatedAt = new Date().toISOString();
   const base: DjSnapshot = {
     mode: "live",
+    persisted: true,
     venue: { id: venueRes.data.id, name: venueRes.data.name },
     night: night
       ? { id: night.id, status: "open", startedAt: night.started_at, closesAt: night.closes_at }
       : null,
     rules,
+    tables,
     items: [],
     history: [],
     generatedAt,
@@ -94,9 +102,39 @@ export async function loadDjSnapshot(): Promise<DjLoadResult> {
   if (songsRes.error) return fail("songs", songsRes.error.message);
   if (videosRes.error) return fail("song_videos", videosRes.error.message);
 
-  const songs = new Map((songsRes.data as SongRow[]).map((s) => [s.id, s]));
+  return {
+    ok: true,
+    snapshot: buildNightSnapshot({
+      base,
+      requests,
+      entries,
+      songs: songsRes.data as SongRow[],
+      videos: videosRes.data as SongVideoRow[],
+    }),
+  };
+}
+
+/**
+ * Flatten request, entry and song rows into the snapshot the DJ console and the guest queue
+ * share. Pure, so the guest loader (RLS-limited rows) and the DJ loader use the same mapping.
+ */
+export function buildNightSnapshot({
+  base,
+  requests,
+  entries,
+  songs: songRows,
+  videos,
+}: {
+  base: DjSnapshot;
+  requests: SongRequestRow[];
+  entries: QueueEntryRow[];
+  songs: Pick<SongRow, "id" | "title" | "artist" | "external_ref" | "duration_sec">[];
+  videos: SongVideoRow[];
+}): DjSnapshot {
+  const tableLabels = base.tables;
+  const songs = new Map(songRows.map((s) => [s.id, s]));
   const videosBySong = new Map<string, SongVideoRow[]>();
-  for (const v of videosRes.data as SongVideoRow[]) {
+  for (const v of videos) {
     const list = videosBySong.get(v.song_id) ?? [];
     list.push(v);
     videosBySong.set(v.song_id, list);
@@ -109,7 +147,7 @@ export async function loadDjSnapshot(): Promise<DjLoadResult> {
     const song = songs.get(r.song_id);
     if (!song) continue;
     const entry = entryByRequest.get(r.id);
-    const tableLabel = r.table_id ? (tableLabels.get(r.table_id) ?? null) : null;
+    const tableLabel = r.table_id ? (tableLabels[r.table_id] ?? null) : null;
     if (r.status === "done") {
       history.push({
         requestId: r.id,
@@ -124,10 +162,19 @@ export async function loadDjSnapshot(): Promise<DjLoadResult> {
       });
       continue;
     }
-    if (r.status !== "pending" && r.status !== "queued" && r.status !== "now_singing") continue;
+    // `approved` is a transitional status: with an entry it is in the queue, without one it waits.
+    const status: DjQueueItem["status"] | null =
+      r.status === "pending" || r.status === "queued" || r.status === "now_singing"
+        ? r.status
+        : r.status === "approved"
+          ? entry
+            ? "queued"
+            : "pending"
+          : null;
+    if (status === null) continue;
     items.push({
       requestId: r.id,
-      entryId: entry?.id ?? null,
+      entryId: status === "pending" ? null : (entry?.id ?? null),
       songId: r.song_id,
       title: song.title,
       artist: song.artist,
@@ -145,7 +192,7 @@ export async function loadDjSnapshot(): Promise<DjLoadResult> {
       groupId: r.group_id,
       singers: r.singers,
       note: r.note,
-      status: r.status,
+      status,
       priority: r.priority,
       position: entry ? Number(entry.position) : 0,
       lockedByHost: entry?.locked_by_host ?? false,
@@ -154,8 +201,7 @@ export async function loadDjSnapshot(): Promise<DjLoadResult> {
     });
   }
   history.sort((a, b) => a.endedAt.localeCompare(b.endedAt));
-
-  return { ok: true, snapshot: { ...base, items, history } };
+  return { ...base, items, history };
 }
 
 function fail(table: string, message: string): DjLoadResult {

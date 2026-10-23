@@ -3,17 +3,19 @@ import { cookies } from "next/headers";
 /**
  * Guest session: which table a phone has joined, and the name the guest chose.
  *
- * Guests join without signing in (auth lands last in phase 1), so this lives in an
- * HttpOnly cookie rather than in Supabase Auth. It only drives what the guest *sees*;
- * nothing is written to the database on its behalf yet. When song requests land, the
- * guest identity moves to a server-verifiable token (see ADR-008).
+ * This cookie is unsigned and only drives what the guest *sees* (ADR-008). The identity
+ * that authorizes writes is the Supabase anonymous session created by the join action
+ * (ADR-009). `guestId` is a random id that survives re-joins; without Supabase configured
+ * it also keys the in-memory demo night, so one browser is one demo sandbox.
  */
 
 export const GUEST_COOKIE = "kj_guest";
 const GUEST_COOKIE_MAX_AGE_SECONDS = 12 * 60 * 60;
 
 export interface GuestSession {
-  v: 1;
+  v: 2;
+  /** Random id minted at first join and kept across re-joins; never an authorization token. */
+  guestId: string;
   tableId: string;
   tableLabel: string;
   joinCode: string;
@@ -39,8 +41,9 @@ export function parseGuestSession(raw: string | undefined | null): GuestSession 
   }
   if (typeof parsed !== "object" || parsed === null) return null;
   const s = parsed as Record<string, unknown>;
-  if (s.v !== 1) return null;
+  if (s.v !== 2) return null;
   const fields = [
+    "guestId",
     "tableId",
     "tableLabel",
     "joinCode",
@@ -54,7 +57,8 @@ export function parseGuestSession(raw: string | undefined | null): GuestSession 
     if (!isNonEmptyString(s[key])) return null;
   }
   return {
-    v: 1,
+    v: 2,
+    guestId: s.guestId as string,
     tableId: s.tableId as string,
     tableLabel: s.tableLabel as string,
     joinCode: s.joinCode as string,

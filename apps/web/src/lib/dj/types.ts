@@ -61,11 +61,19 @@ export interface DjNight {
 }
 
 export interface DjSnapshot {
-  /** `demo` when Supabase is not configured: actions are applied in the browser only. */
+  /** `demo` when Supabase is not configured: the night lives in memory on the server. */
   mode: "demo" | "live";
+  /**
+   * True when host actions are persisted server-side (live, or a demo night stored for this
+   * browser). False for the seeded demo night a DJ sees without a guest cookie: actions then stay
+   * in the browser and a refetch would wipe them.
+   */
+  persisted: boolean;
   venue: { id: string; name: string };
   night: DjNight | null;
   rules: QueueRulesConfig;
+  /** Table labels by id, for rows whose table the venue has since renamed or removed. */
+  tables: Record<string, string>;
   /** Pending, queued and now-singing requests of the open night, in storage order. */
   items: DjQueueItem[];
   /** Requests finished tonight (status `done`), newest last. */

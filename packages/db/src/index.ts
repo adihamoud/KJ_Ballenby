@@ -18,6 +18,7 @@ export type {
   SongVideoRow,
   SongVideoSummary,
   SongRequestRow,
+  SubmitRequestRow,
   SongRow,
   Tables,
   UpdateOf,

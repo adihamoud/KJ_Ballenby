@@ -155,6 +155,8 @@ Each rule is configured in `RulesConfig`. "Toggle off" means setting the neutral
 
 Changing rules while a night is open does not rewrite history; the Server Action calls `reorder()` with the new config so the active queue reflects the change.
 
+Defense in depth: the `submit_request` database function (migration `20261023180000_guest_requests.sql`) re-checks the guest-facing rules of section 3 in the same order with the same reason codes, because it is callable by any signed-in guest. The engine is the specification and its tests are the source of truth; a rule change updates the engine, its test, this document and that function together.
+
 ## 5. Ordering algorithm
 
 ### 5.1 Keys and history

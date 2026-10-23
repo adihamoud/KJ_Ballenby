@@ -1,7 +1,10 @@
 "use server";
 
 import type { QueueEntryRow } from "@kj/db";
+import { getDemoNight, setDemoNight } from "@/lib/demo/night-store";
+import { getGuestSession } from "@/lib/guest/session";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { demoSnapshot } from "./demo-night";
 import { loadDjSnapshot } from "./load";
 import { applyHostAction } from "./queue-model";
 import type { DjSnapshot, HostAction } from "./types";
@@ -29,7 +32,7 @@ export async function performHostAction(
   action: HostAction,
 ): Promise<DjActionResponse> {
   const supabase = await createServerSupabase();
-  if (!supabase) return { ok: false, error: "demo" };
+  if (!supabase) return demoHostAction(nightId, action);
 
   const loaded = await loadDjSnapshot();
   if (!loaded.ok) return { ok: false, error: loaded.reason };
@@ -80,10 +83,35 @@ export async function performHostAction(
   return refreshDjSnapshot();
 }
 
+/**
+ * Demo mode: the night of the browser's guest cookie lives in the server-side store, so the
+ * guest page and the DJ console in the same browser see each other's changes. Without a guest
+ * cookie there is nothing to key the store by; the console then keeps its state client-side.
+ */
+async function demoHostAction(nightId: string, action: HostAction): Promise<DjActionResponse> {
+  const guest = await getGuestSession();
+  if (!guest) return { ok: false, error: "demo" };
+  const current = getDemoNight(guest.guestId);
+  if (!current.night || current.night.id !== nightId || current.night.status !== "open") {
+    return { ok: false, error: "staleNight" };
+  }
+  const result = applyHostAction(current, action, new Date().toISOString());
+  setDemoNight(guest.guestId, result.snapshot);
+  return { ok: true, snapshot: result.snapshot };
+}
+
 /** Open a night for the DJ's venue, snapshotting the current rules. */
 export async function openNight(): Promise<DjActionResponse> {
   const supabase = await createServerSupabase();
-  if (!supabase) return { ok: false, error: "demo" };
+  if (!supabase) {
+    const guest = await getGuestSession();
+    if (!guest) return { ok: false, error: "demo" };
+    const current = getDemoNight(guest.guestId);
+    if (current.night?.status === "open") return { ok: true, snapshot: current };
+    const opened: DjSnapshot = { ...demoSnapshot(), persisted: true };
+    setDemoNight(guest.guestId, opened);
+    return { ok: true, snapshot: opened };
+  }
   const loaded = await loadDjSnapshot();
   if (!loaded.ok) return { ok: false, error: loaded.reason };
   if (loaded.snapshot.night) return { ok: true, snapshot: loaded.snapshot };
@@ -104,8 +132,21 @@ export async function openNight(): Promise<DjActionResponse> {
 /** Close the open night; whatever is still waiting is marked skipped (PRD H1). */
 export async function closeNight(nightId: string): Promise<DjActionResponse> {
   const supabase = await createServerSupabase();
-  if (!supabase) return { ok: false, error: "demo" };
   const now = new Date().toISOString();
+  if (!supabase) {
+    const guest = await getGuestSession();
+    if (!guest) return { ok: false, error: "demo" };
+    const current = getDemoNight(guest.guestId);
+    if (!current.night || current.night.id !== nightId) return { ok: false, error: "staleNight" };
+    const closed: DjSnapshot = {
+      ...current,
+      night: { ...current.night, status: "closed" },
+      items: [],
+      generatedAt: now,
+    };
+    setDemoNight(guest.guestId, closed);
+    return { ok: true, snapshot: closed };
+  }
 
   const skipped = await supabase
     .from("song_requests")

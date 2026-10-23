@@ -1,5 +1,8 @@
 import type { ResolvedTableRow } from "@kj/db";
+import { DEMO_TABLES } from "@/lib/demo/venue";
 import { createServerSupabase } from "@/lib/supabase/server";
+
+export { DEMO_NIGHT_ID, DEMO_TABLES, DEMO_VENUE_ID } from "@/lib/demo/venue";
 
 export type ResolveTableResult =
   { ok: true; table: ResolvedTableRow } | { ok: false; reason: "not_found" | "unavailable" };
@@ -23,42 +26,6 @@ export async function resolveTable(code: string): Promise<ResolveTableResult> {
   const table = data?.[0];
   return table ? { ok: true, table } : { ok: false, reason: "not_found" };
 }
-
-const DEMO_VENUE = {
-  venue_id: "00000000-0000-0000-0000-000000000001",
-  venue_name: "Demo Karaoke Bar",
-  venue_slug: "demo-bar",
-  night_id: null,
-  night_open: false,
-} as const;
-
-/** Mirrors the tables in `supabase/seed.sql`; QR tokens are fixed so e2e can hit `/j/<token>`. */
-export const DEMO_TABLES: readonly ResolvedTableRow[] = [
-  {
-    ...DEMO_VENUE,
-    table_id: "00000000-0000-4000-8000-00000000d001",
-    table_label: "T1",
-    join_code: "DEMO1",
-  },
-  {
-    ...DEMO_VENUE,
-    table_id: "00000000-0000-4000-8000-00000000d002",
-    table_label: "T2",
-    join_code: "DEMO2",
-  },
-  {
-    ...DEMO_VENUE,
-    table_id: "00000000-0000-4000-8000-00000000d003",
-    table_label: "T3",
-    join_code: "DEMO3",
-  },
-  {
-    ...DEMO_VENUE,
-    table_id: "00000000-0000-4000-8000-00000000d00b",
-    table_label: "Bar",
-    join_code: "DEMOB",
-  },
-];
 
 export function resolveDemoTable(code: string): ResolveTableResult {
   const table = DEMO_TABLES.find((t) => t.join_code === code || t.table_id === code);

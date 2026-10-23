@@ -37,16 +37,16 @@ Deliverables:
 
 - [ ] Full schema from `DATA_MODEL.md` with RLS policies and negative-case RLS tests
 - [~] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home done without sign-in, see ADR-008; admin pages and QR sheet pending)
-- [ ] Groups: auto-join table group, ad hoc groups with share link, member list
+- [~] Groups: auto-join table group, ad hoc groups with share link, member list (`join_table` RPC auto-joins the table group at join and request time, ADR-009; ad hoc groups, share link and member list pending)
 - [ ] Catalog upload (CSV + VirtualDJ XML) to Storage; `catalog-import` Edge Function; import status UI
 - [~] Catalog search (tsvector + prefix) with language filter, fast on older phones (guest home search with YouTube versions and thumbnails via `search_songs`; perf check on real phones pending)
-- [ ] Request flow with singers, note, rules evaluation, localized rejection reasons
+- [x] Request flow with singers, note, rules evaluation, localized rejection reasons (`createSongRequest` runs `evaluateRequest`, then the `submit_request` RPC; `queue.reject.*` in he/en)
 - [ ] `@kj/queue-engine` complete: `evaluateRequest`, `reorder`, all reason codes, worked-example tests
-- [~] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional) (host actions done as Server Actions over RLS in `apps/web/src/lib/dj/actions.ts`; submit and a transactional RPC pending)
+- [~] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional) (submit is the transactional `submit_request` RPC; host actions are Server Actions over RLS in `apps/web/src/lib/dj/actions.ts`, a transactional RPC for them pending)
 - [~] DJ dashboard: realtime ordered queue, controls, copy-to-VirtualDJ action, open/close night (console at `/dj` with queue manager, YouTube player and browser mixer; realtime invalidation + polling; drag-reorder is up/down buttons for now)
-- [ ] Guest queue view with position, estimated wait, realtime updates, "you're up next" banner + vibration
-- [ ] Guest cancel own request
-- [ ] Playwright e2e: join -> search -> request -> DJ done -> position updates
+- [~] Guest queue view with position, estimated wait, realtime updates, "you're up next" banner + vibration (own requests with place in line, songs ahead, realtime refetch + polling and an "up next" banner on the guest home; estimated wait and vibration pending)
+- [x] Guest cancel own request
+- [~] Playwright e2e: join -> search -> request -> DJ done -> position updates (join, search, request, rejection, cancel and DJ-sees-request covered on the demo night in `e2e/guest-request.spec.ts`; DJ done -> position update pending a server-backed demo DJ)
 - [ ] Error tracking (Sentry) and structured logs
 
 Done when:

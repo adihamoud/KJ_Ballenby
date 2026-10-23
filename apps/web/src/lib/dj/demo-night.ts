@@ -1,5 +1,6 @@
 import { DEFAULT_RULES, reorder } from "@kj/queue-engine";
 import { DEMO_CATALOG } from "@/lib/guest/demo-catalog";
+import { DEMO_NIGHT_ID, DEMO_TABLES, DEMO_VENUE_ID } from "@/lib/demo/venue";
 import { toNightState } from "./queue-model";
 import type { DjHistoryItem, DjQueueItem, DjSnapshot, DjVideo } from "./types";
 
@@ -9,12 +10,8 @@ import type { DjHistoryItem, DjQueueItem, DjSnapshot, DjVideo } from "./types";
  * Actions are applied in the browser only.
  */
 
-const TABLES = [
-  { id: "demo-table-1", label: "T1" },
-  { id: "demo-table-2", label: "T2" },
-  { id: "demo-table-3", label: "T3" },
-  { id: "demo-table-bar", label: "Bar" },
-] as const;
+// Same ids as the demo join tables, so a guest who joined "T1" sits in this night's T1 lane.
+const TABLES = DEMO_TABLES.map((t) => ({ id: t.table_id, label: t.table_label }));
 
 type TableIndex = 0 | 1 | 2 | 3;
 
@@ -52,6 +49,12 @@ const HISTORY: Array<{ song: string; table: TableIndex; singers: string[]; minut
   { song: "אבניבי", table: 2, singers: ["ליאור"], minutesAgo: 17 },
 ];
 
+function tableAt(index: TableIndex) {
+  const table = TABLES[index];
+  if (!table) throw new Error(`demo night: unknown table ${index}`);
+  return table;
+}
+
 function findSong(title: string) {
   const song = DEMO_CATALOG.find((s) => s.title === title);
   if (!song) throw new Error(`demo night: unknown song ${title}`);
@@ -75,7 +78,7 @@ export function demoSnapshot(now: Date = new Date()): DjSnapshot {
   let position = 0;
   const items: DjQueueItem[] = SEEDS.map((seed, index) => {
     const song = findSong(seed.song);
-    const table = TABLES[seed.table];
+    const table = tableAt(seed.table);
     const hasEntry = seed.status !== "pending";
     if (hasEntry) position += 1000;
     return {
@@ -104,7 +107,7 @@ export function demoSnapshot(now: Date = new Date()): DjSnapshot {
 
   const history: DjHistoryItem[] = HISTORY.map((h, index) => {
     const song = findSong(h.song);
-    const table = TABLES[h.table];
+    const table = tableAt(h.table);
     return {
       requestId: `demo-history-${index + 1}`,
       songId: song.id,
@@ -120,14 +123,17 @@ export function demoSnapshot(now: Date = new Date()): DjSnapshot {
 
   const snapshot: DjSnapshot = {
     mode: "demo",
-    venue: { id: "00000000-0000-0000-0000-000000000001", name: "Demo Karaoke Bar" },
+    persisted: false,
+    venue: { id: DEMO_VENUE_ID, name: "Demo Karaoke Bar" },
     night: {
-      id: "demo-night",
+      id: DEMO_NIGHT_ID,
       status: "open",
       startedAt: minutesBefore(now, 95),
       closesAt: null,
     },
-    rules: { ...DEFAULT_RULES, requireHostApproval: true },
+    // Guest requests go straight to the queue; the two seeded pending items still exercise approval.
+    rules: { ...DEFAULT_RULES },
+    tables: Object.fromEntries(TABLES.map((t) => [t.id, t.label])),
     items,
     history,
     generatedAt: now.toISOString(),

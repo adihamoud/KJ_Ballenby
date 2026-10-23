@@ -50,15 +50,17 @@ Shared config: `tsconfig.base.json`, `.prettierrc`, `.editorconfig`, `.env.examp
 
 ### 3.1 Guest requests a song
 
-1. Guest (authenticated, member of a group in the venue's open night) taps "Request" on a song and submits singers + note.
-2. Browser calls Server Action `createSongRequest({ songId, singers, note })` with the Supabase session cookie.
-3. Server creates a user-scoped Supabase client (anon key + user JWT). RLS guarantees the song and night belong to a venue the guest is active in.
-4. Server loads: venue `nights.rules_snapshot`, current queue entries with request metadata, and the night's recent history (`song_requests` with `done`/`now_singing` in the last few hours), plus the requester's table/group.
+1. Guest joined a table by QR or code. The join action signed them in anonymously with Supabase Auth and called `join_table`, so they are a member of the table's group in the open night (ADR-009). The `kj_guest` cookie only carries what they see (table, venue, display name).
+2. Guest taps "Request" on a song, fills in singers (themselves first, up to `maxSingersPerSong`) and an optional note. The browser calls Server Action `createSongRequest({ songId, singers, note })` with the Supabase session cookie.
+3. Server creates a user-scoped Supabase client (anon key + user JWT). RLS guarantees the song and night belong to the venue the guest is active in; `join_table` runs again (idempotent) in case the night opened after the guest joined.
+4. Server loads the night (`nights.rules_snapshot`, `song_requests`, `queue_entries`, songs, table labels) into the same night snapshot the DJ console uses, and maps it to the engine's `NightState`.
 5. Server calls `evaluateRequest(rules, state, candidate)` from `@kj/queue-engine`.
-6. If result is `{ ok: false, reason }`, the action returns the reason code; the UI shows the localized message. Nothing is written.
-7. If `{ ok: true, position, status }`, the server executes one RPC (`rpc.submit_request`) that inserts `song_requests` (status `pending` if `requireHostApproval`, else `queued`) and, when queued, inserts `queue_entries` with the computed `position`. The RPC re-checks `maxPendingPerUser` under a row lock to avoid double submits.
-8. Postgres emits `INSERT` on `song_requests` and `queue_entries`; Supabase Realtime fans out to subscribed clients of that `night_id`.
-9. Guest's own list, group members' lists, DJ dashboard, and TV screen update within 2 s.
+6. If result is `{ ok: false, reason }`, the action returns the reason code; the UI shows the `queue.reject.*` message. Nothing is written.
+7. If `{ ok: true, position, status }`, the server calls `rpc.submit_request`, which inserts `song_requests` (`pending` if `requireHostApproval`, else `queued`) and, when queued, `queue_entries` at the engine's position, in one transaction. The RPC re-checks `maxPendingPerUser` under a per-user advisory lock and never lets a caller land ahead of the tail.
+8. Postgres emits `INSERT` on `song_requests` and `queue_entries`; Supabase Realtime fans out to subscribed clients of that `night_id` (RLS-filtered, so guests only receive their night).
+9. Guest's own list (place in line, songs ahead), the DJ dashboard, and the TV screen refetch within 2 s; a 15 s poll covers a dropped channel. Cancel is a plain RLS update to `cancelled`; a trigger closes the queue entry.
+
+Without Supabase configured the same flow runs against an in-memory demo night, one per browser (keyed by the guest cookie), so the DJ console opened in that browser shows the guest's request.
 
 ### 3.2 DJ marks a song done
 
@@ -102,6 +104,7 @@ All providers go through Supabase Auth (`@supabase/ssr` for cookie-based session
 - **Google:** `signInWithOAuth({ provider: 'google', redirectTo: <app>/auth/callback })` -> Google consent -> `https://<project-ref>.supabase.co/auth/v1/callback` -> redirect to app `/auth/callback` which exchanges the code for a session cookie. Profile row is created by a Postgres trigger on `auth.users` insert.
 - **Microsoft:** same flow with `provider: 'azure'`, scopes `email openid profile`, tenant `common` so personal and work accounts both work.
 - **Phone OTP (+972):** `signInWithOtp({ phone: '+9725XXXXXXXX' })` -> Supabase sends SMS via Twilio -> guest enters 6-digit code -> `verifyOtp({ phone, token, type: 'sms' })`. UI accepts local Israeli formats and converts to E.164. Rate limiting is Supabase's default plus a per-IP limit in the Route Handler. An Israeli SMS provider can replace Twilio later through the Supabase "Send SMS" auth hook without client changes.
+- **Guests:** `signInAnonymously()` from the join Server Action (ADR-009). The anonymous user is `authenticated` for RLS, gets a `profiles` row from the trigger, and is upgraded to a named account on first social or SMS login (`linkIdentity`), keeping requests and history.
 - **Session:** JWT in HttpOnly cookies, refreshed by middleware; `profiles.locale` read after login to pick the locale.
 - **Roles:** derived from `venue_members`, never from JWT claims, so role changes take effect immediately.
 

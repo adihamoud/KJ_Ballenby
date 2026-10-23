@@ -53,6 +53,18 @@ export interface SearchSongRow {
   videos: SongVideoSummary[];
 }
 
+/**
+ * Result row of `submit_request(...)`. On success `reason` is null and `request_id` is set
+ * (`entry_id` too when the request went straight to the queue). On rejection only `reason` is set:
+ * an engine reason code or `NOT_PARTICIPANT`.
+ */
+export interface SubmitRequestRow {
+  request_id: string | null;
+  entry_id: string | null;
+  status: RequestStatus | null;
+  reason: string | null;
+}
+
 /** Result of `resolve_table(p_code)`: a QR token or join code mapped to its venue and table. */
 export interface ResolvedTableRow {
   table_id: string;
@@ -304,6 +316,20 @@ export interface Database {
       search_songs: {
         Args: { p_venue_id: string; p_query?: string; p_language?: string | null; p_limit?: number };
         Returns: SearchSongRow[];
+      };
+      join_table: {
+        Args: { p_table_id: string };
+        Returns: string | null;
+      };
+      submit_request: {
+        Args: {
+          p_night_id: string;
+          p_song_id: string;
+          p_singers: string[];
+          p_note?: string | null;
+          p_position?: number | null;
+        };
+        Returns: SubmitRequestRow[];
       };
     };
     Enums: {

@@ -32,8 +32,9 @@ Where UI labels are uncertain the text says "look for"; provider dashboards chan
 4. **Authentication -> URL Configuration** (look for "URL Configuration" or "Redirect URLs"):
    - **Site URL**: your production URL once Vercel is set up (for now `http://localhost:3000`).
    - **Additional Redirect URLs**: add `http://localhost:3000/auth/callback`, your production `https://<domain>/auth/callback`, and the Vercel preview wildcard `https://*-<your-vercel-team-or-user>.vercel.app/auth/callback`.
-5. Repeat steps 1-4 for a second project `kj-ballenby-staging` used by preview deploys and CI (optional in phase 1; recommended before phase 2).
-6. Locally: `pnpm dlx supabase login`, then in the repo `pnpm dlx supabase link --project-ref <project-ref>`. Migrations are applied with `pnpm dlx supabase db push`.
+5. **Authentication -> Sign In / Providers -> Anonymous sign-ins**: turn it **on**. Guests who scan a table QR are signed in anonymously so their song requests have a real user id (ADR-009). Leave the default rate limit unless a venue reports guests being blocked behind one Wi-Fi network.
+6. Repeat steps 1-5 for a second project `kj-ballenby-staging` used by preview deploys and CI (optional in phase 1; recommended before phase 2).
+7. Locally: `pnpm dlx supabase login`, then in the repo `pnpm dlx supabase link --project-ref <project-ref>`. Migrations are applied with `pnpm dlx supabase db push`.
 
 Where to paste: `.env.local` in `apps/web` (local), Vercel environment variables (section 5), GitHub Actions secrets (`Settings -> Secrets and variables -> Actions`).
 

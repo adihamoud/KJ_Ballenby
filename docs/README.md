@@ -10,7 +10,7 @@ KJ_Ballenby is a multi-venue SaaS for karaoke bars: guests request songs from th
 | [QUEUE_RULES.md](./QUEUE_RULES.md)       | Specification of the pure-TypeScript queue rules engine: inputs/outputs, rules, reason codes, worked example, host overrides. |
 | [ROADMAP.md](./ROADMAP.md)               | The five delivery phases with goals, deliverables, and "done when" criteria.                                                  |
 | [SETUP_ACCOUNTS.md](./SETUP_ACCOUNTS.md) | Step-by-step owner guide for Supabase, Google OAuth, Microsoft (Azure) OAuth, Twilio phone OTP, and Vercel.                   |
-| [DECISIONS.md](./DECISIONS.md)           | Architecture Decision Records (ADR-001 to ADR-007).                                                                           |
+| [DECISIONS.md](./DECISIONS.md)           | Architecture Decision Records (ADR-001 to ADR-009).                                                                           |
 
 ## Conventions
 

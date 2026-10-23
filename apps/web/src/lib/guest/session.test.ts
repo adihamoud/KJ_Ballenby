@@ -1,7 +1,8 @@
 import { parseGuestSession, type GuestSession } from "./session";
 
 const valid: GuestSession = {
-  v: 1,
+  v: 2,
+  guestId: "22222222-2222-4222-8222-222222222222",
   tableId: "11111111-1111-4111-8111-111111111111",
   tableLabel: "T1",
   joinCode: "DEMO1",
@@ -22,7 +23,7 @@ describe("parseGuestSession", () => {
     expect(parseGuestSession("")).toBeNull();
     expect(parseGuestSession("not json")).toBeNull();
     expect(parseGuestSession("42")).toBeNull();
-    expect(parseGuestSession(JSON.stringify({ ...valid, v: 2 }))).toBeNull();
+    expect(parseGuestSession(JSON.stringify({ ...valid, v: 1 }))).toBeNull();
     expect(parseGuestSession(JSON.stringify({ ...valid, name: "" }))).toBeNull();
     const { tableId: _dropped, ...withoutTable } = valid;
     void _dropped;
