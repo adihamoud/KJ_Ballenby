@@ -9,6 +9,7 @@
   "landing": {
     "title": "Sing in turn, no fighting over the mic",
     "subtitle": "Scan the QR code on your table, pick a song, and the app orders the queue fairly between tables.",
+    "guestCta": "Join as guest",
     "cta": "Sign in",
     "forVenues": "Run a venue? ",
     "forVenuesLink": "Venue admin"
@@ -32,6 +33,46 @@
       "invalidCode": "That code is wrong or has expired",
       "generic": "Something went wrong. Please try again."
     }
+  },
+  "join": {
+    "title": "Join your table",
+    "subtitle": "Scan the QR code on your table, or type the code printed next to it.",
+    "codeLabel": "Table code",
+    "codePlaceholder": "DEMO1",
+    "nameLabel": "What should we call you?",
+    "namePlaceholder": "The name shown in the queue",
+    "nameHint": "Just tell us what to call you.",
+    "submit": "Join",
+    "joining": "Joining {table}",
+    "confirmSubmit": "Yes, that's my table",
+    "alreadyJoined": "You already joined {table} at {venue}.",
+    "backToTable": "Back to your table",
+    "errors": {
+      "invalidCode": "The code is 4–8 letters and digits",
+      "nameRequired": "Enter a name (up to 40 characters)",
+      "notFound": "We couldn't find a table with that code. Check it again or ask the staff.",
+      "unavailable": "We couldn't reach the server. Try again in a moment."
+    },
+    "tokenNotFound": {
+      "title": "This QR code is no longer active",
+      "body": "You can type the table code instead.",
+      "cta": "Enter a code"
+    }
+  },
+  "guest": {
+    "metaTitle": "My table",
+    "title": "Your table: {table}",
+    "joinedAs": "Joined as {name}",
+    "status": {
+      "open": "The night is on! Song search and requests land here next.",
+      "closed": "The night hasn't started yet. We'll update when the DJ opens the queue.",
+      "gone": "This table is no longer active. Scan a new QR code or ask the staff for a code.",
+      "unknown": "We couldn't check the night status. We'll try again on the next refresh."
+    },
+    "queueTitle": "Queue",
+    "queueEmpty": "No songs in the queue yet.",
+    "switchTable": "Switch table",
+    "leave": "Leave table"
   },
   "app": {
     "welcome": "Hi, {name}",

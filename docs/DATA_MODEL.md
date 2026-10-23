@@ -214,6 +214,7 @@ Helper functions (`security definer`, stable):
 - `is_venue_staff(venue_id, roles text[])` - true if `auth.uid()` is in `venue_members` for the venue with one of the roles.
 - `is_night_participant(night_id)` - true if `auth.uid()` is in `group_members` of an active group of that night and the night is `open`.
 - `is_venue_participant(venue_id)` - true if the user participates in the venue's open night.
+- `resolve_table(code text)` - callable by `anon`; maps a `qr_token` (uuid) or `join_code` (uppercased) to `{table_id, table_label, join_code, venue_id, venue_name, venue_slug, night_id, night_open}` for an active table of an active venue, else no row. Backs the guest join flow before sign-in (ADR-008).
 
 | Table           | select                                                                                                        | insert                                                                            | update                                                                         | delete                                          |
 | --------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |

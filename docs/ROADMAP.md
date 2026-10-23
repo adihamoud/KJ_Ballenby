@@ -36,7 +36,7 @@ Done when:
 Deliverables:
 
 - [ ] Full schema from `DATA_MODEL.md` with RLS policies and negative-case RLS tests
-- [ ] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback
+- [~] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home done without sign-in, see ADR-008; admin pages and QR sheet pending)
 - [ ] Groups: auto-join table group, ad hoc groups with share link, member list
 - [ ] Catalog upload (CSV + VirtualDJ XML) to Storage; `catalog-import` Edge Function; import status UI
 - [ ] Catalog search (tsvector + prefix) with language filter, fast on older phones

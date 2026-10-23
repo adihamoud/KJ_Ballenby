@@ -21,7 +21,20 @@ export type RequestStatus =
 export type ImportStatus = "pending" | "processing" | "done" | "failed";
 export type AppLocale = "he" | "en";
 
-type Row<T> = T;
+/** Result of `resolve_table(p_code)`: a QR token or join code mapped to its venue and table. */
+export interface ResolvedTableRow {
+  table_id: string;
+  table_label: string;
+  join_code: string;
+  venue_id: string;
+  venue_name: string;
+  venue_slug: string;
+  night_id: string | null;
+  night_open: boolean;
+}
+
+// Mapped (not bare) so interface rows satisfy supabase-js's `Record<string, unknown>` constraint.
+type Row<T> = { [K in keyof T]: T[K] };
 type Insert<T, Optional extends keyof T> = Omit<T, Optional> & Partial<Pick<T, Optional>>;
 
 export interface ProfileRow {
@@ -242,6 +255,10 @@ export interface Database {
       is_night_participant: {
         Args: { p_night_id: string };
         Returns: boolean;
+      };
+      resolve_table: {
+        Args: { p_code: string };
+        Returns: ResolvedTableRow[];
       };
     };
     Enums: {

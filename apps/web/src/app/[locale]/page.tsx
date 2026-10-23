@@ -20,9 +20,14 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         </p>
         <h1 className="text-4xl leading-tight font-extrabold">{t("landing.title")}</h1>
         <p className="text-muted text-lg">{t("landing.subtitle")}</p>
-        <Link href="/login" className="btn btn-primary mt-4 text-lg">
-          {t("landing.cta")}
-        </Link>
+        <div className="mt-4 flex flex-col gap-3">
+          <Link href="/join" className="btn btn-primary text-lg">
+            {t("landing.guestCta")}
+          </Link>
+          <Link href="/login" className="btn btn-secondary">
+            {t("landing.cta")}
+          </Link>
+        </div>
       </section>
 
       <footer className="text-muted pb-4 text-center text-sm">

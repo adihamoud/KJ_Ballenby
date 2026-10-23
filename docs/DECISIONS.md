@@ -11,6 +11,7 @@ Format: context, decision, consequences. Status is `accepted` unless noted. New 
 | [ADR-005](#adr-005-venue-uploaded-catalog)                     | Venue-uploaded catalog                     | 2026-10-19 |
 | [ADR-006](#adr-006-fractional-positions-for-queue-ordering)    | Fractional positions for queue ordering    | 2026-10-19 |
 | [ADR-007](#adr-007-hebrew-first-rtl-with-next-intl)            | Hebrew-first RTL with next-intl            | 2026-10-19 |
+| [ADR-008](#adr-008-guest-access-before-sign-in)                | Guest access before sign-in                | 2026-10-23 |
 
 ---
 
@@ -165,3 +166,26 @@ Hebrew (`he`) is the **default locale** and design baseline; English (`en`) is t
 - Positive: next-intl supports Server Components, typed message keys, and ICU plurals (Hebrew has dual forms).
 - Negative: contributors must avoid `ml-`/`mr-` style classes (enforced by an ESLint rule) and test both directions; some third-party components need RTL fixes.
 - Negative: mixed-direction strings (Hebrew UI with English song titles) need explicit `dir="auto"` or `unicode-bidi` handling in list items.
+
+---
+
+## ADR-008: Guest access before sign-in
+
+Date: 2026-10-23
+
+### Context
+
+The guest journey starts at the table: scan the QR, pick a song. Phase 1 wires Google, Microsoft and SMS login, but forcing a provider consent screen before a guest even sees their table adds taps and drop-off, and auth is the last piece of phase 1 to land. We want the join flow (`/j/<qr_token>`, code fallback) and the guest home to be usable and testable now, and to attach a signed-in identity later without redesigning the pages.
+
+### Decision
+
+Guests **join a table without an account**. The QR token or typed code is resolved by the `resolve_table` RPC (`security definer`, callable by `anon`), which only returns an active table of an active venue plus whether a night is open; it writes nothing and exposes no personal data. The result and the guest's chosen display name live in an HttpOnly `kj_guest` cookie for 12 hours. Nothing in the database is written on behalf of this cookie: it drives what the guest sees, not what they can do.
+
+When song requests ship (phase 2), the guest identity becomes server-verifiable: either Supabase anonymous sign-in upgraded to a full account on first login, or a signed guest token issued by the join action. Social and SMS login stay as the way to keep history across nights and to unlock staff roles. Without Supabase configured, the web app serves the demo venue from `supabase/seed.sql` in memory so CI and previews exercise the flow.
+
+### Consequences
+
+- Positive: a guest is at their table in two taps (scan, name); the join flow, copy and RTL layout are exercised before auth lands.
+- Positive: `resolve_table` is the single lookup for QR and code, reused by the signed-in flow later.
+- Negative: the cookie is unsigned and client-forgeable, so it must never authorize a write; the request flow needs the upgrade above before any guest mutation.
+- Negative: a join code is unique per venue, not globally; while codes are resolved without a venue context, the first active match (by creation time) wins. Printed QR tokens are globally unique and unaffected.

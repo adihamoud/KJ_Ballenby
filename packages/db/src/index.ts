@@ -13,6 +13,7 @@ export type {
   QueueEntryRow,
   QueueRulesRow,
   RequestStatus,
+  ResolvedTableRow,
   SongRequestRow,
   SongRow,
   Tables,
