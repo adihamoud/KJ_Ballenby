@@ -235,6 +235,14 @@
         "priorityDown": "הורדת עדיפות",
         "copy": "העתקה ל-VirtualDJ",
         "copied": "הועתק"
+      },
+      "drag": {
+        "handle": "גררו את {title} לשינוי הסדר",
+        "instructions": "כדי להרים שיר, לחצו רווח או אנטר. הזיזו עם החצים למעלה ולמטה, שחררו ברווח או אנטר, ובטלו ב-Escape.",
+        "picked": "{title} הורם ממקום {place}.",
+        "over": "{title} מעל מקום {place}.",
+        "dropped": "{title} שוחרר במקום {place} ונשאר נעוץ שם.",
+        "cancelled": "ההזזה של {title} בוטלה."
       }
     },
     "player": {

@@ -184,6 +184,42 @@ function commit(snapshot: DjSnapshot, d: Draft, now: string): HostActionResult {
   };
 }
 
+/**
+ * Move a queued entry to a new index of the "Up next" list and lock it there (QUEUE_RULES.md
+ * section 8, drag-reorder: "between the new neighbours, then locked", so the next reorder() does
+ * not undo it). Out-of-range targets are clamped; landing where it already is changes nothing.
+ */
+function moveTo(
+  d: Draft,
+  snapshot: DjSnapshot,
+  item: DjQueueItem,
+  now: string,
+  target: (from: number) => number,
+): HostActionResult {
+  // Stored positions may lag behind engine order (guest requests land at the stored tail, a
+  // client may be stale). Renumber first so "between the displayed neighbours" and "between the
+  // stored neighbours" agree.
+  normalizePositions(d, snapshot, now);
+  const queued = d.items
+    .filter((i) => i.status === "queued")
+    .sort((a, b) => a.position - b.position);
+  const from = queued.findIndex((i) => i.entryId === item.entryId);
+  if (from < 0 || item.entryId === null) return unchanged(snapshot);
+  // Clamp: a drag past either end lands at that end, and an arrow press at an end (target
+  // outside the list) clamps back onto the same index, which is a no-op.
+  const to = Math.min(Math.max(target(from), 0), queued.length - 1);
+  if (to === from) return unchanged(snapshot);
+  const others = queued.filter((i) => i.entryId !== item.entryId);
+  const lo = others[to - 1]?.position;
+  const hi = others[to]?.position;
+  const position =
+    lo !== undefined && hi !== undefined && hi <= lo ? lo + 0.5 : positionBetween(lo, hi);
+  item.position = position;
+  item.lockedByHost = true;
+  entryChange(d, item.entryId, { position, lockedByHost: true });
+  return commit(snapshot, d, now);
+}
+
 const unchanged = (snapshot: DjSnapshot): HostActionResult => ({
   snapshot,
   requests: [],
@@ -283,31 +319,17 @@ export function applyHostAction(
     case "move": {
       const item = byEntry(action.entryId);
       if (!item || item.status !== "queued") return unchanged(snapshot);
-      // Stored positions may lag behind engine order (e.g. a stale client). Renumber first so
-      // "between the displayed neighbours" and "between the stored neighbours" agree.
-      normalizePositions(d, snapshot, now);
-      const queued = d.items
-        .filter((i) => i.status === "queued")
-        .sort((a, b) => a.position - b.position);
-      const index = queued.findIndex((i) => i.entryId === action.entryId);
-      const targetIndex = action.direction === "up" ? index - 1 : index + 1;
-      if (index < 0 || targetIndex < 0 || targetIndex >= queued.length) {
+      return moveTo(d, snapshot, item, now, (from) =>
+        action.direction === "up" ? from - 1 : from + 1,
+      );
+    }
+    case "reorder": {
+      // Drag and drop: land at `toIndex` of the "Up next" list (queued songs in displayed order).
+      const item = byEntry(action.entryId);
+      if (!item || item.status !== "queued" || !Number.isInteger(action.toIndex)) {
         return unchanged(snapshot);
       }
-      // Land between the new neighbours (spec section 8, drag-reorder) and lock there so
-      // the next reorder() does not undo the move.
-      const [before, after] =
-        action.direction === "up"
-          ? [queued[targetIndex - 1], queued[targetIndex]]
-          : [queued[targetIndex], queued[targetIndex + 1]];
-      const lo = before?.position;
-      const hi = after?.position;
-      const position =
-        lo !== undefined && hi !== undefined && hi <= lo ? lo + 0.5 : positionBetween(lo, hi);
-      item.position = position;
-      item.lockedByHost = true;
-      entryChange(d, action.entryId, { position, lockedByHost: true });
-      return commit(snapshot, d, now);
+      return moveTo(d, snapshot, item, now, () => action.toIndex);
     }
   }
 }

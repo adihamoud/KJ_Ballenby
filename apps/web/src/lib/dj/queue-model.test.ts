@@ -270,3 +270,81 @@ describe("pin keeps the displayed slot", () => {
     expect(orderedQueue(later.snapshot).findIndex((i) => i.entryId === "e-pin")).toBe(shown);
   });
 });
+
+describe("reorder (drag and drop)", () => {
+  const upNext = (s: DjSnapshot) => orderedQueue(s).filter((i) => i.status === "queued");
+  const ids = (s: DjSnapshot) => upNext(s).map((i) => i.entryId);
+
+  it("drops the last song at the top, locks it there and keeps the rest in order", () => {
+    const s = snapshot();
+    const before = ids(s);
+    const last = before[before.length - 1]!;
+    const res = apply(s, { type: "reorder", entryId: last, toIndex: 0 });
+    expect(ids(res.snapshot)).toEqual([last, ...before.slice(0, -1)]);
+    expect(upNext(res.snapshot)[0]?.lockedByHost).toBe(true);
+    expect(res.entries.find((e) => e.entryId === last)?.lockedByHost).toBe(true);
+  });
+
+  it("drops the first song at the bottom", () => {
+    const s = snapshot();
+    const before = ids(s);
+    const first = before[0]!;
+    const res = apply(s, { type: "reorder", entryId: first, toIndex: before.length - 1 });
+    expect(ids(res.snapshot)).toEqual([...before.slice(1), first]);
+  });
+
+  it("moves into the middle exactly like an array move", () => {
+    const s = snapshot();
+    const before = ids(s);
+    const moved = before[0]!;
+    const res = apply(s, { type: "reorder", entryId: moved, toIndex: 2 });
+    const expected = before.filter((id) => id !== moved);
+    expected.splice(2, 0, moved);
+    expect(ids(res.snapshot)).toEqual(expected);
+  });
+
+  it("clamps targets past either end", () => {
+    const s = snapshot();
+    const before = ids(s);
+    const second = before[1]!;
+    const top = apply(s, { type: "reorder", entryId: second, toIndex: -5 });
+    expect(ids(top.snapshot)[0]).toBe(second);
+    const bottom = apply(s, { type: "reorder", entryId: second, toIndex: 99 });
+    expect(ids(bottom.snapshot).at(-1)).toBe(second);
+  });
+
+  it("ignores a drop on the same place, a non-integer index and a pending request", () => {
+    const s = snapshot();
+    const first = ids(s)[0]!;
+    expect(apply(s, { type: "reorder", entryId: first, toIndex: 0 }).snapshot).toBe(s);
+    expect(apply(s, { type: "reorder", entryId: first, toIndex: 1.5 }).snapshot).toBe(s);
+    expect(apply(s, { type: "reorder", entryId: "no-such-entry", toIndex: 0 }).snapshot).toBe(s);
+  });
+
+  it("keeps the dropped song in place when another table's request arrives", () => {
+    const s = snapshot();
+    const before = ids(s);
+    const last = before[before.length - 1]!;
+    const dropped = apply(s, { type: "reorder", entryId: last, toIndex: 1 });
+    const song = DEMO_CATALOG.find((c) => c.title === "I Will Survive")!;
+    const t3 = DEMO_TABLES[2]!;
+    const later = applyGuestRequest(
+      dropped.snapshot,
+      {
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        durationSec: song.duration_sec,
+        videos: [],
+        active: true,
+      },
+      { userId: "guest-late", tableId: t3.table_id, tableLabel: t3.table_label, groupId: null },
+      ["Late"],
+      null,
+      LATER,
+      { requestId: "r-late", entryId: "e-late" },
+    );
+    if (!later.ok) throw new Error("fixture");
+    expect(ids(later.snapshot).indexOf(last)).toBe(1);
+  });
+});
