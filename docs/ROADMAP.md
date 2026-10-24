@@ -36,7 +36,7 @@ Done when:
 Deliverables:
 
 - [ ] Full schema from `DATA_MODEL.md` with RLS policies and negative-case RLS tests
-- [~] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home done without sign-in, see ADR-008; admin pages and QR sheet pending)
+- [x] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home without sign-in, see ADR-008; `/admin/tables` adds, renames, deactivates and re-codes tables through Server Actions under RLS, `/admin/qr` prints one A4 card per active table with the QR of `/<locale>/j/<qr_token>` and the typed code; staff selection across several venues pending)
 - [~] Groups: auto-join table group, ad hoc groups with share link, member list (`join_table` RPC auto-joins the table group at join and request time, ADR-009; ad hoc groups, share link and member list pending)
 - [ ] Catalog upload (CSV + VirtualDJ XML) to Storage; `catalog-import` Edge Function; import status UI
 - [~] Catalog search (tsvector + prefix) with language filter, fast on older phones (guest home search with YouTube versions and thumbnails via `search_songs`; perf check on real phones pending)
@@ -62,7 +62,7 @@ Done when:
 
 Deliverables:
 
-- [ ] Rules configuration UI covering every `RulesConfig` key with validation and "apply now / next night"
+- [~] Rules configuration UI covering every `RulesConfig` key with validation and "apply now / next night" (`/admin/settings` edits the venue name and every key of `queue_rules.config`, validated by the engine's `parseRules`; rules apply to the next night opened, "apply now" to a running night pending)
 - [ ] Staff management: invite by email/phone, roles `owner|admin|dj`, remove, last-owner protection
 - [ ] Public TV screen route: "now singing" + "up next", venue branding from `venues.settings`, no login
 - [ ] DJ manual add (walk-up request) and host priority controls
