@@ -152,7 +152,16 @@
   "app": {
     "welcome": "Hi, {name}",
     "noNight": "You haven't joined a night yet. Scan the QR code on your table.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "staff": {
+      "venue": "Your venue",
+      "role": "You're signed in as {role}",
+      "roles": {
+        "owner": "owner",
+        "admin": "admin",
+        "dj": "DJ"
+      }
+    }
   },
   "dj": {
     "title": "DJ console",
@@ -284,7 +293,132 @@
   },
   "admin": {
     "title": "Venue admin",
-    "comingSoon": "Venue settings, tables and catalog land here in phase 2."
+    "metaTitle": "Venue admin",
+    "demoBadge": "Demo",
+    "demoHint": "Supabase isn't configured, so changes stay in this browser for a few hours.",
+    "nav": {
+      "label": "Admin sections",
+      "overview": "Overview",
+      "tables": "Tables",
+      "qr": "QR sheet",
+      "settings": "Settings",
+      "dj": "DJ console",
+      "signOut": "Sign out"
+    },
+    "notStaff": {
+      "title": "You're not on any venue's staff",
+      "body": "Ask the venue owner to add you as an admin, then reload this page."
+    },
+    "notAdmin": {
+      "title": "You're a DJ here, not an admin",
+      "body": "Tables, the QR sheet and the rules are managed by the venue's owner or admin. Ask them to promote you if you need access.",
+      "dj": "Open the DJ console"
+    },
+    "unavailable": {
+      "title": "We couldn't load the venue",
+      "body": "Check the connection and try again.",
+      "retry": "Try again"
+    },
+    "overview": {
+      "title": "Overview",
+      "tables": "{total, plural, =0 {No tables yet} one {# table} other {# tables}}, {active, plural, =0 {none active} one {# active} other {# active}}",
+      "manageTables": "Manage tables",
+      "printQr": "Print QR sheet",
+      "editSettings": "Edit settings",
+      "on": "On",
+      "off": "Off"
+    },
+    "tables": {
+      "title": "Tables",
+      "metaTitle": "Tables",
+      "hint": "Each table has a QR code and a short typed code. Deactivated tables keep their history but guests can't join them.",
+      "empty": "No tables yet. Add the first one above.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "code": "Code",
+      "rename": "Rename",
+      "renameLabel": "New label",
+      "save": "Save",
+      "cancel": "Cancel",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "regenerate": "New code",
+      "confirmRegenerate": "Replace the typed code of {label}? Printed sheets with the old code stop working; the QR keeps working.",
+      "add": {
+        "title": "Add a table",
+        "label": "Table label",
+        "placeholder": "T12 or Bar 3",
+        "submit": "Add table"
+      },
+      "errors": {
+        "labelRequired": "Enter a label (up to 40 characters).",
+        "duplicateLabel": "A table with that label already exists.",
+        "codeExhausted": "We couldn't find a free code. Try again.",
+        "notFound": "That table no longer exists. Reload the page.",
+        "notAdmin": "Only the venue's owner or admin can change tables.",
+        "unavailable": "The change didn't reach the server. Try again in a moment."
+      }
+    },
+    "qr": {
+      "title": "QR sheet",
+      "metaTitle": "QR sheet",
+      "print": "Print",
+      "hint": "{count, plural, =0 {No active tables to print.} one {One card, A4.} other {# cards, two per row on A4.}} Cut along the borders and place one on each table.",
+      "unavailable": "We couldn't load the tables. Check the connection and try again.",
+      "noTables": "There are no active tables. Add tables first, then come back to print.",
+      "addTables": "Go to tables",
+      "scan": "Scan to join {table}",
+      "orType": "or type this code at"
+    },
+    "settings": {
+      "title": "Settings",
+      "metaTitle": "Settings",
+      "venue": {
+        "title": "Venue",
+        "name": "Venue name"
+      },
+      "rules": {
+        "title": "Queue rules",
+        "hint": "Rules apply to the next night you open; a night that is already running keeps the rules it started with.",
+        "fairness": "Fairness",
+        "fairnessHint": "How the queue alternates between tables or singers.",
+        "fairnessOptions": {
+          "round_robin_table": "Round robin by table",
+          "round_robin_singer": "Round robin by singer",
+          "fifo": "First come, first served"
+        },
+        "maxPendingPerUser": "Songs waiting per guest",
+        "maxPendingPerUserHint": "At least 1.",
+        "maxPendingPerTable": "Songs waiting per table",
+        "maxPendingPerTableHint": "Leave empty for no limit.",
+        "maxSingersPerSong": "Singers per song",
+        "maxSingersPerSongHint": "At least 1. Only matters when duets are allowed.",
+        "cooldownMinutesPerUser": "Cooldown after singing (minutes)",
+        "cooldownMinutesPerUserHint": "0 means no cooldown.",
+        "duplicateSongWindowMinutes": "Same song again after (minutes)",
+        "duplicateSongWindowMinutesHint": "0 lets guests repeat songs.",
+        "nightCutoffMinutesBeforeClose": "Stop requests before close (minutes)",
+        "nightCutoffMinutesBeforeCloseHint": "Leave empty to accept requests until the night closes.",
+        "requireHostApproval": "DJ approves each request",
+        "requireHostApprovalHint": "New requests wait for the DJ before they enter the queue.",
+        "allowDuets": "Allow duets",
+        "allowDuetsHint": "More than one singer on a request.",
+        "hostPriorityEnabled": "DJ can set priority",
+        "hostPriorityEnabledHint": "A higher priority sorts a request earlier.",
+        "noLimit": "No limit"
+      },
+      "save": "Save settings",
+      "saved": "Saved. The next night you open uses these rules.",
+      "savedDemo": "Saved in this browser's demo venue.",
+      "errors": {
+        "nameRequired": "Enter a venue name (up to 80 characters).",
+        "invalidFields": "Check the highlighted fields.",
+        "notAdmin": "Only the venue's owner or admin can change settings.",
+        "unavailable": "The settings didn't reach the server. Try again in a moment.",
+        "field": "Enter a whole number of {min} or more.",
+        "fieldNullable": "Enter a whole number of {min} or more, or leave empty."
+      }
+    }
   },
   "notFound": {
     "title": "Page not found",

@@ -64,6 +64,8 @@ PK `(venue_id, user_id)`.
 
 Unique `(venue_id, join_code)`, unique `(qr_token)`.
 
+The admin tables page (`/admin/tables`) is the only writer: it generates `join_code` as 5 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no 0/O/1/I/L, so a printed code is unambiguous), retrying on a per-venue collision, and never deletes rows; "deactivate" clears `is_active`, after which `resolve_table` stops resolving the table while its requests keep their history. Regenerating a join code leaves `qr_token` untouched, so printed QR sheets stay valid. Rows are written through the owner/admin's own session (RLS `venue_tables: owner/admin manage`), never the service role.
+
 ### nights
 
 One operating session. The queue belongs to a night.
@@ -225,6 +227,8 @@ Cross-venue integrity: a trigger (or composite FK) asserts that `song_requests.s
 | song_requests   | `(night_id, status)`; `(requested_by, night_id, status)`; `(night_id, song_id, created_at desc)` | Queue state, maxPending checks, duplicate-song window |
 | queue_entries   | unique `(request_id)`; `(night_id, position)`                                                    | Ordered queue read                                    |
 | catalog_imports | `(venue_id, created_at desc)`                                                                    | Import history                                        |
+
+The venue settings page (`/admin/settings`) upserts `queue_rules` with `updated_by = auth.uid()` and updates `venues.name`, both through the signed-in owner/admin's session. The stored `config` is always the complete, validated shape `parseRules` returns.
 
 ## 4. RLS policy summary
 
