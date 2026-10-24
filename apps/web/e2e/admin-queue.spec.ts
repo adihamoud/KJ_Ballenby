@@ -34,7 +34,9 @@ test.describe("admin queue (demo night)", () => {
     await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(2);
   });
 
-  test("moves a song down and another up; moved songs stay pinned", async ({ page }) => {
+  test("moves a song down and another up; moved songs stay where they were put", async ({
+    page,
+  }) => {
     await openQueue(page, "/en/admin/queue");
     await expect(page.getByTestId("queue-row")).toHaveCount(5);
     const before = await rowTitles(page);
@@ -44,7 +46,7 @@ test.describe("admin queue (demo night)", () => {
     const afterDown = await rowTitles(page);
     expect(afterDown[1]).toBe(before[0]);
     expect(afterDown[0]).toBe(before[1]);
-    await expect(page.getByTestId("queue-row").nth(1)).toContainText("Pinned");
+    await expect(page.getByTestId("queue-row").nth(1)).toContainText("Moved by hand");
 
     const last = afterDown.length - 1;
     await page.getByTestId("queue-row").nth(last).getByRole("button", { name: "Move up" }).click();
@@ -72,7 +74,7 @@ test.describe("admin queue (demo night)", () => {
 
     await expect.poll(async () => (await rowTitles(page))[0]).toBe(before[4]);
     expect((await rowTitles(page)).slice(1)).toEqual(before.slice(0, 4));
-    await expect(rows.nth(0)).toContainText("Pinned");
+    await expect(rows.nth(0)).toContainText("Moved by hand");
   });
 
   test("the overview links to the queue", async ({ page }) => {

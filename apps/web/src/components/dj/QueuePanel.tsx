@@ -436,7 +436,12 @@ function SongSummary({
         </span>
         <Chip>{item.tableLabel ? t("table", { label: item.tableLabel }) : t("walkUp")}</Chip>
         {item.priority > 0 && <Chip tone="accent">{t("priority", { n: item.priority })}</Chip>}
-        {item.lockedByHost && <Chip tone="brand">{t("pinned")}</Chip>}
+        {item.lockedByHost && (
+          <Chip tone="brand" hint={t("pinnedHint")}>
+            {t("pinned")}
+            <span className="sr-only">. {t("pinnedHint")}</span>
+          </Chip>
+        )}
         {duration && <span className="tabular-nums">{duration}</span>}
         <time dateTime={item.createdAt} className="whitespace-nowrap">
           {format.relativeTime(noLaterThan(item.createdAt, now), now)}
@@ -513,9 +518,12 @@ function CopyButton({ item, compact = false }: { item: DjQueueItem; compact?: bo
 function Chip({
   children,
   tone = "muted",
+  hint,
 }: {
   children: React.ReactNode;
   tone?: "muted" | "accent" | "brand";
+  /** Explanation shown on hover (and read by screen readers after the chip text). */
+  hint?: string;
 }) {
   const toneClass =
     tone === "accent"
@@ -525,7 +533,10 @@ function Chip({
         : "border-border text-muted";
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${toneClass}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${toneClass} ${
+        hint ? "cursor-help" : ""
+      }`}
+      title={hint}
     >
       {children}
     </span>
