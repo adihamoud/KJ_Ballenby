@@ -22,14 +22,20 @@ export async function joinTableAction(_prev: JoinState, formData: FormData): Pro
   const rawLocale = formData.get("locale");
   const locale = isLocale(rawLocale) ? rawLocale : defaultLocale;
 
-  const code = normalizeJoinCode(stringField(formData, "code"));
-  if (!code) return { error: "invalidCode" };
+  const rawCode = stringField(formData, "code");
+  const rawName = stringField(formData, "name");
+  const echo = { code: rawCode, name: rawName };
 
-  const name = normalizeGuestName(stringField(formData, "name"));
-  if (!name) return { error: "nameRequired" };
+  const code = normalizeJoinCode(rawCode);
+  if (!code) return { error: "invalidCode", ...echo };
+
+  const name = normalizeGuestName(rawName);
+  if (!name) return { error: "nameRequired", ...echo };
 
   const result = await resolveTable(code);
-  if (!result.ok) return { error: result.reason === "not_found" ? "notFound" : "unavailable" };
+  if (!result.ok) {
+    return { error: result.reason === "not_found" ? "notFound" : "unavailable", ...echo };
+  }
 
   const { table } = result;
   const previous = await getGuestSession();

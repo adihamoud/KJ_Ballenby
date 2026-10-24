@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 /**
  * Guest session: which table a phone has joined, and the name the guest chose.
@@ -75,13 +75,45 @@ export async function getGuestSession(): Promise<GuestSession | null> {
   return parseGuestSession(store.get(GUEST_COOKIE)?.value);
 }
 
+/**
+ * Whether the cookie should carry the `Secure` attribute.
+ *
+ * Decided per request, not from NODE_ENV: a production build served over plain http on
+ * localhost (`next start` in CI, a laptop demo) must not set `Secure`, because WebKit, unlike
+ * Chrome and Firefox, drops Secure cookies on http://localhost. The guest would then look
+ * joined on the page returned by the join action and lose the session on the next request.
+ * Over https (Vercel and any TLS proxy send `x-forwarded-proto: https`) it is always set, and
+ * a production build on a non-local host keeps it even without the header.
+ */
+export function cookieNeedsSecure(input: {
+  forwardedProto: string | null;
+  host: string | null;
+  nodeEnv: string | undefined;
+}): boolean {
+  const proto = input.forwardedProto?.split(",")[0]?.trim().toLowerCase();
+  if (proto === "https") return true;
+  if (proto === "http") return false;
+  const hostname = (input.host ?? "").split(":")[0]?.toLowerCase() ?? "";
+  const local =
+    hostname === "" ||
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]";
+  return input.nodeEnv === "production" && !local;
+}
+
 /** Only callable from a Server Action or Route Handler (cookies are read-only elsewhere). */
 export async function setGuestSession(session: GuestSession): Promise<void> {
-  const store = await cookies();
+  const [store, requestHeaders] = await Promise.all([cookies(), headers()]);
   store.set(GUEST_COOKIE, JSON.stringify(session), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieNeedsSecure({
+      forwardedProto: requestHeaders.get("x-forwarded-proto"),
+      host: requestHeaders.get("host"),
+      nodeEnv: process.env.NODE_ENV,
+    }),
     path: "/",
     maxAge: GUEST_COOKIE_MAX_AGE_SECONDS,
   });

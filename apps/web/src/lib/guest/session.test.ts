@@ -1,4 +1,4 @@
-import { parseGuestSession, type GuestSession } from "./session";
+import { cookieNeedsSecure, parseGuestSession, type GuestSession } from "./session";
 
 const valid: GuestSession = {
   v: 2,
@@ -33,5 +33,54 @@ describe("parseGuestSession", () => {
   it("drops unknown extra fields", () => {
     const parsed = parseGuestSession(JSON.stringify({ ...valid, extra: "x" }));
     expect(parsed).toEqual(valid);
+  });
+});
+
+describe("cookieNeedsSecure", () => {
+  it("is on behind an https proxy (Vercel) whatever the environment", () => {
+    expect(
+      cookieNeedsSecure({ forwardedProto: "https", host: "kj.example", nodeEnv: "production" }),
+    ).toBe(true);
+    expect(
+      cookieNeedsSecure({
+        forwardedProto: "https",
+        host: "localhost:3000",
+        nodeEnv: "development",
+      }),
+    ).toBe(true);
+    expect(
+      cookieNeedsSecure({
+        forwardedProto: "https, http",
+        host: "kj.example",
+        nodeEnv: "production",
+      }),
+    ).toBe(true);
+  });
+
+  it("is off for a production build served over plain http on localhost (CI, WebKit)", () => {
+    expect(
+      cookieNeedsSecure({ forwardedProto: null, host: "localhost:3000", nodeEnv: "production" }),
+    ).toBe(false);
+    expect(
+      cookieNeedsSecure({ forwardedProto: null, host: "127.0.0.1:3100", nodeEnv: "production" }),
+    ).toBe(false);
+    expect(
+      cookieNeedsSecure({ forwardedProto: "http", host: "kj.example", nodeEnv: "production" }),
+    ).toBe(false);
+  });
+
+  it("stays on for a production build on a real host without the proxy header", () => {
+    expect(
+      cookieNeedsSecure({ forwardedProto: null, host: "kj.example", nodeEnv: "production" }),
+    ).toBe(true);
+  });
+
+  it("is off in development without https", () => {
+    expect(
+      cookieNeedsSecure({ forwardedProto: null, host: "localhost:3000", nodeEnv: "development" }),
+    ).toBe(false);
+    expect(
+      cookieNeedsSecure({ forwardedProto: null, host: "kj.example", nodeEnv: "development" }),
+    ).toBe(false);
   });
 });

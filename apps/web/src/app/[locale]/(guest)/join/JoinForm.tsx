@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { joinTableAction } from "@/lib/guest/actions";
 import { initialJoinState } from "@/lib/guest/join-state";
@@ -14,12 +14,19 @@ interface JoinFormProps {
   name?: string;
 }
 
+/**
+ * The inputs are deliberately uncontrolled. A guest on a slow phone starts typing before React
+ * has hydrated, and a controlled input would reset to its initial state at hydration, wiping
+ * the code and silently failing the `required` check on submit. React resets uncontrolled
+ * fields to `defaultValue` after each action, so the action echoes the submission back in its
+ * state and the defaults follow it; the `key` remounts the inputs so the new defaults apply.
+ */
 export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormProps) {
   const t = useTranslations("join");
   const [state, formAction, pending] = useActionState(joinTableAction, initialJoinState);
-  // Controlled so React's post-action form reset does not wipe what the guest typed on error.
-  const [codeValue, setCodeValue] = useState(code);
-  const [nameValue, setNameValue] = useState(name);
+  const codeDefault = state.code ?? code;
+  const nameDefault = state.name ?? name;
+  const fieldKey = `${codeDefault}\u0000${nameDefault}`;
 
   return (
     <form action={formAction} className="card flex flex-col gap-4 p-5">
@@ -31,6 +38,7 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">{t("codeLabel")}</span>
           <input
+            key={`code:${fieldKey}`}
             className="input text-center text-2xl tracking-[0.3em] uppercase"
             name="code"
             dir="ltr"
@@ -40,8 +48,7 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
             spellCheck={false}
             maxLength={36}
             placeholder={t("codePlaceholder")}
-            value={codeValue}
-            onChange={(e) => setCodeValue(e.target.value)}
+            defaultValue={codeDefault}
             required
           />
         </label>
@@ -50,14 +57,14 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium">{t("nameLabel")}</span>
         <input
+          key={`name:${fieldKey}`}
           className="input"
           name="name"
           type="text"
           autoComplete="nickname"
           maxLength={GUEST_NAME_MAX}
           placeholder={t("namePlaceholder")}
-          value={nameValue}
-          onChange={(e) => setNameValue(e.target.value)}
+          defaultValue={nameDefault}
           required
         />
       </label>
