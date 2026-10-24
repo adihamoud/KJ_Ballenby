@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { DjQueueItem } from "@/lib/dj/types";
 import { formatDuration, youtubeWatchUrl } from "@/lib/youtube";
+import { TableChip } from "./TableInfo";
 import type { PlayerControls } from "./useYouTubePlayer";
 
 interface PlayerPanelProps {
@@ -60,7 +61,11 @@ export function PlayerPanel({
           </p>
           <p className="text-muted truncate text-sm">
             <span dir="auto">{item.singers.join(" + ")}</span>
-            {item.tableLabel && <span className="ms-2">· {item.tableLabel}</span>}
+            {item.tableLabel && (
+              <span className="ms-2 inline-flex">
+                <TableChip tableId={item.tableId}>{item.tableLabel}</TableChip>
+              </span>
+            )}
           </p>
         </div>
       ) : (

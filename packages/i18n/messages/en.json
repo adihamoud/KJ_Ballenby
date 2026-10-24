@@ -298,6 +298,29 @@
       "masterMute": "Mute everything",
       "masterUnmute": "Unmute everything",
       "masterHint": "Cuts music and mic together. Use it between songs or when the host talks."
+    },
+    "tableCard": {
+      "open": "Details of table {label}",
+      "openSince": "Open since {time} · {ago}",
+      "notOpened": "Not opened tonight",
+      "guests": "{count, plural, =0 {Guests} one {# guest} other {# guests}}",
+      "loading": "Loading guests…",
+      "noGuests": "Nobody has sat down yet.",
+      "unknownGuest": "Guest",
+      "joinedAt": "Sat down at {time}",
+      "onMic": "On the mic:",
+      "nextTurn": "Next turn",
+      "startsAround": "starts {when}",
+      "nothingWaiting": "Nothing waiting from this table.",
+      "tally": "{waiting, plural, =0 {none waiting} one {# waiting} other {# waiting}}{pending, plural, =0 {} other { · # awaiting approval}} · {sung, plural, =0 {nothing sung} one {# sung} other {# sung}}",
+      "lastSang": "last sang {ago}",
+      "showOnBoard": "Show on the tables board"
+    },
+    "mini": {
+      "label": "Now playing",
+      "playing": "Now playing",
+      "paused": "Paused",
+      "back": "Back to the DJ console"
     }
   },
   "admin": {
@@ -308,7 +331,6 @@
     "nav": {
       "label": "Admin sections",
       "overview": "Overview",
-      "queue": "Queue",
       "tonight": "Tables tonight",
       "tables": "Tables",
       "qr": "QR sheet",
@@ -338,14 +360,8 @@
       "editSettings": "Edit settings",
       "on": "On",
       "off": "Off",
-      "manageQueue": "Manage the queue"
-    },
-    "queue": {
-      "title": "Tonight’s queue",
-      "metaTitle": "Queue",
-      "hint": "Drag songs or use the arrows to change the order (a moved song stays where you put it), raise priority, approve or skip. Changes show on the DJ console and guests’ phones within seconds.",
-      "openConsole": "Open the DJ console",
-      "dismiss": "Dismiss"
+      "djHint": "Run the night here: queue with drag and drop, player and mixer. Hover a table name to see who sits there and when its turn comes. Music keeps playing while you move between admin tabs.",
+      "openDj": "Open the DJ console"
     },
     "tonight": {
       "title": "Tables tonight",
@@ -369,7 +385,8 @@
       "movedByHand": "Moved by hand",
       "sung": "Sung tonight",
       "noSung": "Nothing sung yet.",
-      "walkUp": "Walk-up (no table)"
+      "walkUp": "Walk-up (no table)",
+      "startsAround": "starts {when}"
     },
     "tables": {
       "title": "Tables",

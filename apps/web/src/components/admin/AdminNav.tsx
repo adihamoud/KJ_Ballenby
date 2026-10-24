@@ -5,7 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 
 const ITEMS = [
   { href: "/admin", key: "overview", exact: true },
-  { href: "/admin/queue", key: "queue", exact: false },
+  { href: "/admin/dj", key: "dj", exact: false },
   { href: "/admin/tonight", key: "tonight", exact: false },
   { href: "/admin/tables", key: "tables", exact: false },
   { href: "/admin/qr", key: "qr", exact: false },
@@ -39,9 +39,6 @@ export function AdminNav({ mode, locale }: { mode: "live" | "demo"; locale: stri
         );
       })}
       <span className="ms-auto flex items-center gap-2">
-        <Link href="/dj" className="text-muted text-sm underline">
-          {t("dj")}
-        </Link>
         {mode === "live" && (
           <form action={`/${locale}/auth/signout`} method="post">
             <button type="submit" className="text-muted text-sm underline">
