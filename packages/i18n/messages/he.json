@@ -150,7 +150,16 @@
   "app": {
     "welcome": "שלום, {name}",
     "noNight": "עוד לא הצטרפתם לערב. סרקו את ה-QR שעל השולחן.",
-    "signOut": "התנתקות"
+    "signOut": "התנתקות",
+    "staff": {
+      "venue": "המקום שלכם",
+      "role": "אתם מחוברים בתור {role}",
+      "roles": {
+        "owner": "בעלים",
+        "admin": "מנהל/ת",
+        "dj": "DJ"
+      }
+    }
   },
   "dj": {
     "title": "קונסולת DJ",
@@ -281,7 +290,132 @@
   },
   "admin": {
     "title": "ניהול המקום",
-    "comingSoon": "הגדרות מקום, שולחנות וקטלוג יופיעו כאן בשלב 2."
+    "metaTitle": "ניהול המקום",
+    "demoBadge": "הדגמה",
+    "demoHint": "Supabase לא מוגדר, ולכן השינויים נשמרים בדפדפן הזה בלבד לכמה שעות.",
+    "nav": {
+      "label": "אזורי ניהול",
+      "overview": "סקירה",
+      "tables": "שולחנות",
+      "qr": "דף QR",
+      "settings": "הגדרות",
+      "dj": "קונסולת DJ",
+      "signOut": "יציאה"
+    },
+    "notStaff": {
+      "title": "אינכם בצוות של שום מקום",
+      "body": "בקשו מבעלי המקום להוסיף אתכם כמנהלים, ואז טענו את הדף מחדש."
+    },
+    "notAdmin": {
+      "title": "אתם DJ כאן, לא מנהלים",
+      "body": "שולחנות, דף ה-QR והחוקים מנוהלים על ידי בעלי המקום או המנהלים. בקשו מהם הרשאה אם אתם צריכים גישה.",
+      "dj": "לקונסולת ה-DJ"
+    },
+    "unavailable": {
+      "title": "לא הצלחנו לטעון את המקום",
+      "body": "בדקו את החיבור ונסו שוב.",
+      "retry": "נסו שוב"
+    },
+    "overview": {
+      "title": "סקירה",
+      "tables": "{total, plural, =0 {אין שולחנות עדיין} one {שולחן אחד} other {# שולחנות}}, {active, plural, =0 {אף אחד לא פעיל} one {אחד פעיל} other {# פעילים}}",
+      "manageTables": "ניהול שולחנות",
+      "printQr": "הדפסת דף QR",
+      "editSettings": "עריכת הגדרות",
+      "on": "פעיל",
+      "off": "כבוי"
+    },
+    "tables": {
+      "title": "שולחנות",
+      "metaTitle": "שולחנות",
+      "hint": "לכל שולחן יש קוד QR וקוד קצר להקלדה. שולחן שהושבת שומר את ההיסטוריה שלו, אבל אורחים לא יכולים להצטרף אליו.",
+      "empty": "אין שולחנות עדיין. הוסיפו את הראשון למעלה.",
+      "active": "פעיל",
+      "inactive": "מושבת",
+      "code": "קוד",
+      "rename": "שינוי שם",
+      "renameLabel": "שם חדש",
+      "save": "שמירה",
+      "cancel": "ביטול",
+      "deactivate": "השבתה",
+      "activate": "הפעלה",
+      "regenerate": "קוד חדש",
+      "confirmRegenerate": "להחליף את קוד ההקלדה של {label}? דפים מודפסים עם הקוד הישן יפסיקו לעבוד; ה-QR ימשיך לעבוד.",
+      "add": {
+        "title": "הוספת שולחן",
+        "label": "שם השולחן",
+        "placeholder": "T12 או בר 3",
+        "submit": "הוספת שולחן"
+      },
+      "errors": {
+        "labelRequired": "הזינו שם (עד 40 תווים).",
+        "duplicateLabel": "כבר יש שולחן בשם הזה.",
+        "codeExhausted": "לא מצאנו קוד פנוי. נסו שוב.",
+        "notFound": "השולחן הזה כבר לא קיים. טענו את הדף מחדש.",
+        "notAdmin": "רק בעלי המקום או המנהלים יכולים לשנות שולחנות.",
+        "unavailable": "השינוי לא הגיע לשרת. נסו שוב בעוד רגע."
+      }
+    },
+    "qr": {
+      "title": "דף QR",
+      "metaTitle": "דף QR",
+      "print": "הדפסה",
+      "hint": "{count, plural, =0 {אין שולחנות פעילים להדפסה.} one {כרטיס אחד, A4.} other {# כרטיסים, שניים בשורה על A4.}} גזרו לאורך המסגרת והניחו אחד על כל שולחן.",
+      "unavailable": "לא הצלחנו לטעון את השולחנות. בדקו את החיבור ונסו שוב.",
+      "noTables": "אין שולחנות פעילים. הוסיפו שולחנות ואז חזרו להדפיס.",
+      "addTables": "לשולחנות",
+      "scan": "סרקו כדי להצטרף ל{table}",
+      "orType": "או הקלידו את הקוד הזה בכתובת"
+    },
+    "settings": {
+      "title": "הגדרות",
+      "metaTitle": "הגדרות",
+      "venue": {
+        "title": "המקום",
+        "name": "שם המקום"
+      },
+      "rules": {
+        "title": "חוקי התור",
+        "hint": "החוקים חלים על הערב הבא שתפתחו; ערב שכבר רץ ממשיך עם החוקים שאיתם התחיל.",
+        "fairness": "הוגנות",
+        "fairnessHint": "איך התור מתחלף בין שולחנות או זמרים.",
+        "fairnessOptions": {
+          "round_robin_table": "סבב לפי שולחן",
+          "round_robin_singer": "סבב לפי זמר",
+          "fifo": "לפי סדר הבקשות"
+        },
+        "maxPendingPerUser": "שירים בהמתנה לאורח",
+        "maxPendingPerUserHint": "לפחות 1.",
+        "maxPendingPerTable": "שירים בהמתנה לשולחן",
+        "maxPendingPerTableHint": "השאירו ריק ללא מגבלה.",
+        "maxSingersPerSong": "זמרים לשיר",
+        "maxSingersPerSongHint": "לפחות 1. רלוונטי רק כשדואטים מותרים.",
+        "cooldownMinutesPerUser": "הפסקה אחרי שירה (דקות)",
+        "cooldownMinutesPerUserHint": "0 פירושו בלי הפסקה.",
+        "duplicateSongWindowMinutes": "אותו שיר שוב אחרי (דקות)",
+        "duplicateSongWindowMinutesHint": "0 מאפשר לאורחים לחזור על שירים.",
+        "nightCutoffMinutesBeforeClose": "סגירת בקשות לפני סוף הערב (דקות)",
+        "nightCutoffMinutesBeforeCloseHint": "השאירו ריק כדי לקבל בקשות עד סגירת הערב.",
+        "requireHostApproval": "ה-DJ מאשר כל בקשה",
+        "requireHostApprovalHint": "בקשות חדשות מחכות לאישור ה-DJ לפני שהן נכנסות לתור.",
+        "allowDuets": "לאפשר דואטים",
+        "allowDuetsHint": "יותר מזמר אחד בבקשה.",
+        "hostPriorityEnabled": "ה-DJ יכול לקבוע עדיפות",
+        "hostPriorityEnabledHint": "עדיפות גבוהה יותר מקדימה את הבקשה בתור.",
+        "noLimit": "ללא מגבלה"
+      },
+      "save": "שמירת הגדרות",
+      "saved": "נשמר. הערב הבא שתפתחו ישתמש בחוקים האלה.",
+      "savedDemo": "נשמר במקום ההדגמה של הדפדפן הזה.",
+      "errors": {
+        "nameRequired": "הזינו שם למקום (עד 80 תווים).",
+        "invalidFields": "בדקו את השדות המסומנים.",
+        "notAdmin": "רק בעלי המקום או המנהלים יכולים לשנות הגדרות.",
+        "unavailable": "ההגדרות לא הגיעו לשרת. נסו שוב בעוד רגע.",
+        "field": "הזינו מספר שלם של {min} או יותר.",
+        "fieldNullable": "הזינו מספר שלם של {min} או יותר, או השאירו ריק."
+      }
+    }
   },
   "notFound": {
     "title": "העמוד לא נמצא",
