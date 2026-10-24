@@ -44,6 +44,14 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
   const persisted = snapshot.persisted;
   const night = snapshot.night?.status === "open" ? snapshot.night : null;
 
+  // Ordering guard: a host action's response replaces the snapshot only if no newer action was
+  // sent meanwhile, and refreshes (poll, realtime hint) are dropped while actions are in flight.
+  // Otherwise a slow response or a refresh started before the click re-renders the pre-action
+  // state and the DJ's next tap lands on a stale card.
+  const actionSeq = useRef(0);
+  const inFlight = useRef(0);
+  const needsRefresh = useRef(false);
+
   const applyResponse = useCallback((res: DjActionResponse) => {
     if (res.ok) {
       setSnapshot(res.snapshot);
@@ -54,7 +62,15 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
 
   const refresh = useCallback(() => {
     if (!persisted) return;
-    startTransition(async () => applyResponse(await refreshDjSnapshot()));
+    if (inFlight.current > 0) {
+      needsRefresh.current = true;
+      return;
+    }
+    startTransition(async () => {
+      const res = await refreshDjSnapshot();
+      if (inFlight.current === 0) applyResponse(res);
+      else needsRefresh.current = true;
+    });
   }, [applyResponse, persisted]);
 
   // Realtime (live) and polling (anything persisted) only ever trigger a refetch.
@@ -73,10 +89,27 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
       const optimistic = applyHostAction(current, action, new Date().toISOString());
       setSnapshot(optimistic.snapshot);
       if (!current.persisted) return;
+      const seq = ++actionSeq.current;
+      inFlight.current += 1;
       startTransition(async () => {
-        const res = await performHostAction(currentNight.id, action);
-        applyResponse(res);
-        if (!res.ok) applyResponse(await refreshDjSnapshot());
+        try {
+          const res = await performHostAction(currentNight.id, action);
+          if (!res.ok) setError(res.error);
+          if (seq === actionSeq.current) {
+            // Latest action: its server snapshot is the truth (it includes earlier actions).
+            if (res.ok) setSnapshot(res.snapshot);
+            else applyResponse(await refreshDjSnapshot());
+          } else {
+            // Superseded by a newer action; its response will carry this one's effect.
+            needsRefresh.current = true;
+          }
+        } finally {
+          inFlight.current -= 1;
+          if (inFlight.current === 0 && needsRefresh.current) {
+            needsRefresh.current = false;
+            applyResponse(await refreshDjSnapshot());
+          }
+        }
       });
     },
     [applyResponse],
@@ -85,7 +118,8 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
   const toggleNight = useCallback(() => {
     const current = snapshotRef.current;
     if (current.night?.status === "open") {
-      const waiting = current.items.length;
+      // Only what is still waiting gets skipped; the singer on the mic finishes as done.
+      const waiting = current.items.filter((i) => i.status !== "now_singing").length;
       if (waiting > 0 && !window.confirm(t("night.confirmClose", { count: waiting }))) return;
       if (!current.persisted) {
         setSnapshot(closeNightSnapshot(current, new Date().toISOString()));

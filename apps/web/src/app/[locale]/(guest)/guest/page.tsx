@@ -4,6 +4,7 @@ import { GuestNightProvider } from "@/components/GuestNightContext";
 import { GuestQueue } from "@/components/GuestQueue";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { SongSearch } from "@/components/SongSearch";
+import { retryGuestIdentityAction } from "@/lib/guest/actions";
 import { loadGuestNight } from "@/lib/guest/night";
 import { guestQueueView, sheetLimits } from "@/lib/guest/queue-state";
 import { resolveTable } from "@/lib/guest/resolve";
@@ -63,11 +64,25 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
         className={`card p-5 ${status === "open" ? "border-brand-2" : ""}`}
         aria-live="polite"
       >
-        <p className={status === "gone" ? "text-danger" : "text-muted"}>
-          {t(`guest.status.${status}`)}
-        </p>
-        {status === "open" && !night.ok && (
-          <p className="text-danger mt-2 text-sm">{t(`guest.queue.errors.${night.reason}`)}</p>
+        {!night.ok && night.reason === "noIdentity" ? (
+          // No Supabase session behind the cookie: the sign-in is retried from here, not by
+          // reloading (a reload never signs in again).
+          <form action={retryGuestIdentityAction} className="flex flex-col gap-3">
+            <input type="hidden" name="locale" value={locale} />
+            <p className="text-danger">{t("guest.queue.errors.noIdentity")}</p>
+            <button type="submit" className="btn btn-primary">
+              {t("guest.queue.retryIdentity")}
+            </button>
+          </form>
+        ) : (
+          <>
+            <p className={status === "gone" ? "text-danger" : "text-muted"}>
+              {t(`guest.status.${status}`)}
+            </p>
+            {status === "open" && !night.ok && (
+              <p className="text-danger mt-2 text-sm">{t(`guest.queue.errors.${night.reason}`)}</p>
+            )}
+          </>
         )}
       </section>
 

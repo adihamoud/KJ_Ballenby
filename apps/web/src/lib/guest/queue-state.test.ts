@@ -159,7 +159,7 @@ describe("guestQueueView", () => {
     expect(view.nightOpen).toBe(true);
     expect(view.nightId).toBe("demo-night");
     expect(view.nowSinging?.title).toBe("Sweet Caroline");
-    expect(view.queueLength).toBe(7);
+    expect(view.queueLength).toBe(6);
     expect(view.maxSingersPerSong).toBe(4);
     expect(view.mine).toHaveLength(1);
     const mine = view.mine[0]!;
@@ -167,7 +167,7 @@ describe("guestQueueView", () => {
     expect(mine.status).toBe("queued");
     // T1 already has two songs waiting, so Dana's third T1 song lands last among six waiting.
     expect(mine.position).toBe(6);
-    expect(mine.ahead).toBe(6);
+    expect(mine.ahead).toBe(5);
   });
 
   it("hides other guests' requests and reports no position while pending", () => {

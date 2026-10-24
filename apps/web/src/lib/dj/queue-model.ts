@@ -265,6 +265,10 @@ export function applyHostAction(
       if (!item || item.status !== "queued" || item.lockedByHost === action.locked) {
         return unchanged(snapshot);
       }
+      // Guest requests land at the stored tail while the display follows the engine's fair
+      // order, so stored positions can lag the displayed order. A lock anchors the entry at its
+      // stored index; renumber first so the pinned song keeps the slot the DJ is looking at.
+      if (action.locked) normalizePositions(d, snapshot, now);
       item.lockedByHost = action.locked;
       entryChange(d, action.entryId, { lockedByHost: action.locked });
       return commit(snapshot, d, now);

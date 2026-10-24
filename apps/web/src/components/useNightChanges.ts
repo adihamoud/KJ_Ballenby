@@ -43,9 +43,18 @@ export function useNightChanges({
     };
     let cleanup: (() => void) | null = null;
     let cancelled = false;
-    import("@/lib/supabase/client").then(({ getBrowserSupabase }) => {
+    import("@/lib/supabase/client").then(async ({ getBrowserSupabase }) => {
       if (cancelled) return;
       const supabase = getBrowserSupabase();
+      // Every policy is "to authenticated", so the channel must carry the user's JWT or the
+      // Realtime server filters out every row change (the badge still says "Live"). Hand the
+      // token over before joining and again whenever it is refreshed.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (sessionData.session) await supabase.realtime.setAuth(sessionData.session.access_token);
+      const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) void supabase.realtime.setAuth(session.access_token);
+      });
       const channel = supabase
         .channel(`night-${nightId}`)
         .on(
@@ -80,7 +89,10 @@ export function useNightChanges({
             hint();
           } else if (status === "CLOSED") setConnection("polling");
         });
-      cleanup = () => void supabase.removeChannel(channel);
+      cleanup = () => {
+        authSub.subscription.unsubscribe();
+        void supabase.removeChannel(channel);
+      };
     });
     return () => {
       cancelled = true;

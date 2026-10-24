@@ -75,7 +75,7 @@ export function PlayerPanel({
         <div ref={containerRef} className="absolute inset-0 [&>iframe]:size-full" dir="ltr" />
         {!hasVideo && (
           <div className="text-muted absolute inset-0 flex items-center justify-center p-6 text-center text-sm">
-            {item ? t("noVideos") : t("empty")}
+            {item ? (item.videos.length > 0 ? t("noEmbeddable") : t("noVideos")) : t("empty")}
           </div>
         )}
         {player.status === "error" && (

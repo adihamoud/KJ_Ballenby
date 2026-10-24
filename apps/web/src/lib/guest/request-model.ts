@@ -67,7 +67,7 @@ export interface GuestRequestView {
   status: "pending" | "queued" | "now_singing";
   /** 1-based place among the songs still waiting (null while pending or on the mic). */
   position: number | null;
-  /** Songs that play before this one, the current singer included (null while pending). */
+  /** Waiting songs that play before this one, the current singer excluded (null while pending). */
   ahead: number | null;
   createdAt: string;
 }
@@ -77,7 +77,7 @@ export interface GuestQueueView {
   mode: "demo" | "live";
   nightId: string | null;
   nightOpen: boolean;
-  /** Queued and now-singing songs in the whole night. */
+  /** Songs still waiting in the whole night (the singer on the mic not counted). */
   queueLength: number;
   nowSinging: {
     title: string;

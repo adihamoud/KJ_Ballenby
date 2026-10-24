@@ -13,6 +13,16 @@ interface QueuePanelProps {
   onAutoStartChange: (value: boolean) => void;
 }
 
+/**
+ * A row's timestamp for relative display. The panel's clock starts from the server's request
+ * time and ticks every 30 s, so a request made a moment ago can be "newer" than the clock and
+ * would read "in 5 seconds"; clamp it to "now".
+ */
+function noLaterThan(iso: string, now: Date): Date {
+  const date = new Date(iso);
+  return date > now ? now : date;
+}
+
 /** Text the DJ pastes into VirtualDJ's search box (PRD H4). */
 export function virtualDjSearchText(item: Pick<DjQueueItem, "externalRef" | "title" | "artist">) {
   return item.externalRef ?? `${item.artist} - ${item.title}`;
@@ -159,7 +169,7 @@ function NowSingingCard({
         <SongSummary item={item} now={now} large />
         {item.startedAt && (
           <p className="text-muted ms-auto text-xs whitespace-nowrap">
-            {t("startedAgo", { time: format.relativeTime(new Date(item.startedAt), now) })}
+            {t("startedAgo", { time: format.relativeTime(noLaterThan(item.startedAt, now), now) })}
           </p>
         )}
       </div>
@@ -321,7 +331,7 @@ function SongSummary({
         {item.lockedByHost && <Chip tone="brand">{t("pinned")}</Chip>}
         {duration && <span className="tabular-nums">{duration}</span>}
         <time dateTime={item.createdAt} className="whitespace-nowrap">
-          {format.relativeTime(new Date(item.createdAt), now)}
+          {format.relativeTime(noLaterThan(item.createdAt, now), now)}
         </time>
       </p>
       {item.note && (
