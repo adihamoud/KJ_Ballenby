@@ -51,6 +51,30 @@ test.describe("admin queue (demo night)", () => {
     await expect.poll(async () => (await rowTitles(page))[last - 1]).toBe(afterDown[last]);
   });
 
+  test("drags the last song to the top by its handle", async ({ page }) => {
+    await openQueue(page, "/en/admin/queue");
+    const rows = page.getByTestId("queue-row");
+    await expect(rows).toHaveCount(5);
+    const before = await rowTitles(page);
+
+    const handle = rows.nth(4).getByTestId("drag-handle");
+    const target = rows.nth(0).getByTestId("drag-handle");
+    await handle.scrollIntoViewIfNeeded();
+    const from = await handle.boundingBox();
+    const to = await target.boundingBox();
+    if (!from || !to) throw new Error("handles not laid out");
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    // Move in steps: the drag starts after a few pixels and follows the pointer.
+    await page.mouse.move(from.x + from.width / 2, from.y - 10, { steps: 5 });
+    await page.mouse.move(to.x + to.width / 2, to.y - 20, { steps: 25 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await rowTitles(page))[0]).toBe(before[4]);
+    expect((await rowTitles(page)).slice(1)).toEqual(before.slice(0, 4));
+    await expect(rows.nth(0)).toContainText("Pinned");
+  });
+
   test("the overview links to the queue", async ({ page }) => {
     await openQueue(page, "/en/admin");
     await page.getByRole("link", { name: "Manage the queue" }).click();

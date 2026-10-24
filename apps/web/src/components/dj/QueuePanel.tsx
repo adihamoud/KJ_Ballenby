@@ -1,6 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type Announcements,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 import type { DjHistoryItem, DjQueueItem, DjSnapshot, HostAction } from "@/lib/dj/types";
 import { nowSinging, orderedQueue, pendingItems } from "@/lib/dj/queue-model";
@@ -123,25 +140,90 @@ export function QueuePanel({ snapshot, onAction, autoStart, onAutoStartChange }:
         {queued.length === 0 ? (
           <p className="text-muted text-sm">{t("empty")}</p>
         ) : (
-          <ol className="flex flex-col gap-2">
-            {queued.map((item, index) => (
-              <QueueRow
-                key={item.requestId}
-                item={item}
-                now={now}
-                index={index}
-                total={queued.length}
-                highlighted={index < 3}
-                showPriority={showPriority}
-                onAction={onAction}
-              />
-            ))}
-          </ol>
+          <SortableQueue
+            queued={queued}
+            now={now}
+            showPriority={showPriority}
+            onAction={onAction}
+          />
         )}
       </section>
 
       <HistoryList history={snapshot.history} />
     </div>
+  );
+}
+
+/**
+ * The "Up next" list with drag and drop: grab a row by its handle (mouse, touch, or keyboard:
+ * focus the handle, Space, arrows, Space) and drop it anywhere. A drop sends one `reorder`
+ * action; the song is pinned where it lands, like the arrow buttons (QUEUE_RULES.md section 8).
+ */
+function SortableQueue({
+  queued,
+  now,
+  showPriority,
+  onAction,
+}: {
+  queued: DjQueueItem[];
+  now: Date;
+  showPriority: boolean;
+  onAction: (action: HostAction) => void;
+}) {
+  const t = useTranslations("dj.queue.drag");
+  // Stable across server and client render, so dnd-kit's aria ids hydrate cleanly.
+  const dndId = useId();
+  const ids = queued.map((i) => i.entryId as string);
+  const sensors = useSensors(
+    // A few pixels of movement before a drag starts, so taps on the handle stay taps.
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const titleOf = (id: string | number) =>
+    queued.find((i) => i.entryId === id)?.title ?? String(id);
+  const placeOf = (id: string | number) => ids.indexOf(String(id)) + 1;
+  const announcements: Announcements = {
+    onDragStart: ({ active }) =>
+      t("picked", { title: titleOf(active.id), place: placeOf(active.id) }),
+    onDragOver: ({ active, over }) =>
+      over ? t("over", { title: titleOf(active.id), place: placeOf(over.id) }) : undefined,
+    onDragEnd: ({ active, over }) =>
+      over ? t("dropped", { title: titleOf(active.id), place: placeOf(over.id) }) : undefined,
+    onDragCancel: ({ active }) => t("cancelled", { title: titleOf(active.id) }),
+  };
+
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const toIndex = ids.indexOf(String(over.id));
+    if (toIndex < 0) return;
+    onAction({ type: "reorder", entryId: String(active.id), toIndex });
+  };
+
+  return (
+    <DndContext
+      id={dndId}
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={onDragEnd}
+      accessibility={{ announcements, screenReaderInstructions: { draggable: t("instructions") } }}
+    >
+      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+        <ol className="flex flex-col gap-2">
+          {queued.map((item, index) => (
+            <QueueRow
+              key={item.requestId}
+              item={item}
+              now={now}
+              index={index}
+              total={queued.length}
+              highlighted={index < 3}
+              showPriority={showPriority}
+              onAction={onAction}
+            />
+          ))}
+        </ol>
+      </SortableContext>
+    </DndContext>
   );
 }
 
@@ -213,21 +295,47 @@ function QueueRow({
 }) {
   const t = useTranslations("dj.queue");
   const entryId = item.entryId as string;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: entryId });
+  // Vertical only: the list never moves sideways.
+  const style = {
+    transform: CSS.Transform.toString(transform ? { ...transform, x: 0 } : null),
+    transition,
+  };
 
   return (
     <li
-      className={`card flex flex-col gap-2 p-3 ${highlighted ? "border-brand-2/60" : ""}`}
+      ref={setNodeRef}
+      style={style}
+      className={`card flex flex-col gap-2 p-3 ${highlighted ? "border-brand-2/60" : ""} ${
+        isDragging ? "border-brand relative z-10 opacity-90 shadow-xl" : ""
+      }`}
       data-testid="queue-row"
+      data-dragging={isDragging || undefined}
     >
       <div className="flex items-start gap-3">
-        <span
-          className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
-            highlighted ? "bg-brand-2/25 text-text" : "bg-surface-2 text-muted"
-          }`}
-          aria-hidden="true"
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          aria-label={t("drag.handle", { title: item.title })}
+          title={t("drag.handle", { title: item.title })}
+          data-testid="drag-handle"
+          className={`flex shrink-0 touch-none items-center gap-1 rounded-full py-1 ps-1 pe-2.5 text-sm font-bold tabular-nums select-none ${
+            isDragging ? "cursor-grabbing" : "cursor-grab"
+          } ${highlighted ? "bg-brand-2/25 text-text" : "bg-surface-2 text-muted"}`}
         >
+          <GripIcon />
           {index + 1}
-        </span>
+        </button>
         <SongSummary item={item} now={now} />
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -466,6 +574,19 @@ const icon = {
   strokeLinecap: "round",
   strokeLinejoin: "round",
 } as const;
+
+function GripIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="9" cy="6" r="1.6" />
+      <circle cx="15" cy="6" r="1.6" />
+      <circle cx="9" cy="12" r="1.6" />
+      <circle cx="15" cy="12" r="1.6" />
+      <circle cx="9" cy="18" r="1.6" />
+      <circle cx="15" cy="18" r="1.6" />
+    </svg>
+  );
+}
 
 export function PlayIcon() {
   return (

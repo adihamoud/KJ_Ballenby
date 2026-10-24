@@ -90,7 +90,9 @@ export type HostAction =
   | { type: "skip"; requestId: string }
   | { type: "pin"; entryId: string; locked: boolean }
   | { type: "priority"; requestId: string; priority: number }
-  | { type: "move"; entryId: string; direction: "up" | "down" };
+  | { type: "move"; entryId: string; direction: "up" | "down" }
+  /** Drag and drop: `toIndex` is the target index in the "Up next" list (0 = next to sing). */
+  | { type: "reorder"; entryId: string; toIndex: number };
 
 /** Field-level change produced by a host action; the server persists exactly these. */
 export interface RequestChange {

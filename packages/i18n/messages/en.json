@@ -235,6 +235,14 @@
         "priorityDown": "Lower priority",
         "copy": "Copy for VirtualDJ",
         "copied": "Copied"
+      },
+      "drag": {
+        "handle": "Drag {title} to reorder",
+        "instructions": "To pick up a song, press Space or Enter. Use the up and down arrows to move it, Space or Enter to drop it, Escape to cancel.",
+        "picked": "Picked up {title} at place {place}.",
+        "over": "{title} is over place {place}.",
+        "dropped": "{title} dropped at place {place}. It stays pinned there.",
+        "cancelled": "Moving {title} cancelled."
       }
     },
     "player": {
