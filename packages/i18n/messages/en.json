@@ -53,7 +53,8 @@
       "invalidCode": "The code is 4–8 letters and digits",
       "nameRequired": "Enter a name (up to 40 characters)",
       "notFound": "We couldn't find a table with that code. Check it again or ask the staff.",
-      "unavailable": "We couldn't reach the server. Try again in a moment."
+      "unavailable": "We couldn't reach the server. Try again in a moment.",
+      "identity": "We couldn't sign you in right now. Wait a moment and tap Join again."
     },
     "tokenNotFound": {
       "title": "This QR code is no longer active",
@@ -107,7 +108,7 @@
       "submit": "Send request",
       "errors": {
         "noSession": "Join a table to request a song.",
-        "noIdentity": "We couldn't sign you in as a guest. Reload the page and try again.",
+        "noIdentity": "We couldn't sign you in as a guest yet. Tap Try again at the top of the page.",
         "notParticipant": "You're not at a table in tonight's queue. Rejoin your table and try again.",
         "invalidInput": "Check the song and the singers' names.",
         "unavailable": "The request didn't reach the server. Try again in a moment."
@@ -125,9 +126,10 @@
       "place": "{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} in line · {ahead, plural, =0 {you're next} one {# song before you} other {# songs before you}}",
       "cancel": "Cancel",
       "confirmCancel": "Cancel this request?",
+      "retryIdentity": "Try again",
       "errors": {
         "noSession": "Join a table to see the queue.",
-        "noIdentity": "We couldn't sign you in as a guest. Reload the page and try again.",
+        "noIdentity": "We couldn't sign you in as a guest yet, so the queue and requests are off for now.",
         "notParticipant": "You're not at a table in tonight's queue. Rejoin your table.",
         "invalidInput": "Something was off with that request.",
         "unavailable": "We couldn't reach the queue. We'll retry shortly."
@@ -246,6 +248,7 @@
       "versionN": "Version {n}",
       "notEmbeddable": "Opens on YouTube",
       "noVideos": "No karaoke video is linked to this song. Load it in VirtualDJ.",
+      "noEmbeddable": "This song's versions can't play inside the app. Open one on YouTube or load it in VirtualDJ.",
       "play": "Play",
       "pause": "Pause",
       "restart": "Restart",

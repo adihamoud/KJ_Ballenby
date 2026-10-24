@@ -45,7 +45,9 @@ export function guestQueueView(
     mode: snapshot.mode,
     nightId: open ? (snapshot.night?.id ?? null) : null,
     nightOpen: open,
-    queueLength: ordered.length,
+    // Songs still waiting; the singer on the mic is reported separately (same count as the
+    // DJ console's "Queue · N songs").
+    queueLength: ordered.filter((item) => item.status === "queued").length,
     nowSinging: singing
       ? {
           title: singing.title,
@@ -76,7 +78,9 @@ function toGuestView(
     note: item.note,
     status: item.status,
     position: inQueue && item.status === "queued" ? orderIndex - waitingOffset + 1 : null,
-    ahead: inQueue ? orderIndex : null,
+    // Waiting songs before this one, so "3rd in line · 2 songs before you" always agrees; the
+    // singer on the mic is shown on its own line.
+    ahead: inQueue ? Math.max(0, orderIndex - waitingOffset) : null,
     createdAt: item.createdAt,
   };
 }

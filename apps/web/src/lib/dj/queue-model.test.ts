@@ -1,3 +1,6 @@
+import { DEMO_TABLES } from "@/lib/demo/venue";
+import { DEMO_CATALOG } from "@/lib/guest/demo-catalog";
+import { applyGuestRequest } from "@/lib/guest/queue-state";
 import { demoSnapshot } from "./demo-night";
 import {
   applyHostAction,
@@ -197,5 +200,73 @@ describe("move", () => {
     const first = orderedQueue(s).filter((i) => i.status === "queued")[0];
     if (!first?.entryId) throw new Error("fixture");
     expect(apply(s, { type: "move", entryId: first.entryId, direction: "up" }).snapshot).toBe(s);
+  });
+});
+
+describe("pin keeps the displayed slot", () => {
+  function guestSong(title: string) {
+    const song = DEMO_CATALOG.find((c) => c.title === title);
+    if (!song) throw new Error(`fixture: ${title}`);
+    return {
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      durationSec: song.duration_sec,
+      videos: [],
+      active: true,
+    };
+  }
+  function who(tableIndex: number, userId: string) {
+    const t = DEMO_TABLES[tableIndex];
+    if (!t) throw new Error("fixture: table");
+    return { userId, tableId: t.table_id, tableLabel: t.table_label, groupId: null };
+  }
+
+  it("renumbers stored positions to the fair order before locking", () => {
+    const s = snapshot();
+    // A guest request lands at the stored tail; for a table whose lane is short, round robin
+    // shows it before the tail. Pick the first table where display and storage disagree.
+    const storedIndex = (snap: DjSnapshot, entryId: string) =>
+      [...snap.items]
+        .filter((i) => i.entryId)
+        .sort((a, b) => a.position - b.position)
+        .findIndex((i) => i.entryId === entryId);
+    let added: ReturnType<typeof applyGuestRequest> | null = null;
+    let shown = -1;
+    for (const tableIndex of [3, 2, 1, 0]) {
+      const attempt = applyGuestRequest(
+        s,
+        guestSong("Don't Stop Believin'"),
+        who(tableIndex, "guest-pin"),
+        ["Pin"],
+        null,
+        LATER,
+        { requestId: "r-pin", entryId: "e-pin" },
+      );
+      if (!attempt.ok) continue;
+      const displayed = orderedQueue(attempt.snapshot).findIndex((i) => i.entryId === "e-pin");
+      if (displayed !== storedIndex(attempt.snapshot, "e-pin")) {
+        added = attempt;
+        shown = displayed;
+        break;
+      }
+    }
+    if (!added || !added.ok) throw new Error("fixture: no table reorders the new request");
+
+    const pinned = apply(added.snapshot, { type: "pin", entryId: "e-pin", locked: true });
+    expect(orderedQueue(pinned.snapshot).findIndex((i) => i.entryId === "e-pin")).toBe(shown);
+
+    // A later request from another table leaves the pinned song where the DJ saw it.
+    const later = applyGuestRequest(
+      pinned.snapshot,
+      guestSong("I Will Survive"),
+      who(2, "guest-2"),
+      ["Two"],
+      null,
+      LATER,
+      { requestId: "r-2", entryId: "e-2" },
+    );
+    if (!later.ok) throw new Error("fixture 2");
+    expect(orderedQueue(later.snapshot).findIndex((i) => i.entryId === "e-pin")).toBe(shown);
   });
 });

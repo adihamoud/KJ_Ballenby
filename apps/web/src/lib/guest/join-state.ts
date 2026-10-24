@@ -1,4 +1,5 @@
-export type JoinError = "invalidCode" | "nameRequired" | "notFound" | "unavailable";
+/** `identity`: the table exists but the anonymous sign-in failed (e.g. Supabase rate limit). */
+export type JoinError = "invalidCode" | "nameRequired" | "notFound" | "unavailable" | "identity";
 
 export interface JoinState {
   error: JoinError | null;

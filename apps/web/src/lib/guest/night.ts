@@ -1,5 +1,5 @@
 import { parseRules } from "@kj/queue-engine";
-import type { QueueEntryRow, SongRequestRow, SongRow, VenueTableRow } from "@kj/db";
+import type { QueueEntryRow, SongRequestRow, SongRow } from "@kj/db";
 import { getDemoNight } from "@/lib/demo/night-store";
 import { buildNightSnapshot } from "@/lib/dj/load";
 import type { DjSnapshot } from "@/lib/dj/types";
@@ -57,7 +57,9 @@ export async function loadGuestNight(session: GuestSession): Promise<GuestNightR
       .eq("venue_id", session.venueId)
       .eq("status", "open")
       .maybeSingle(),
-    supabase.from("venue_tables").select("id, label").eq("venue_id", session.venueId),
+    // venue_tables itself is staff-only (it holds QR tokens and join codes); guests get labels
+    // through this security-definer function.
+    supabase.rpc("venue_table_labels", { p_venue_id: session.venueId }),
     // "group_members: read" lets a user see their own rows.
     supabase.from("group_members").select("group_id").eq("user_id", user.id),
   ]);
@@ -75,9 +77,7 @@ export async function loadGuestNight(session: GuestSession): Promise<GuestNightR
       ? { id: night.id, status: "open", startedAt: night.started_at, closesAt: night.closes_at }
       : null,
     rules: parseRules(night?.rules_snapshot ?? {}),
-    tables: Object.fromEntries(
-      (tablesRes.data as Pick<VenueTableRow, "id" | "label">[]).map((t) => [t.id, t.label]),
-    ),
+    tables: Object.fromEntries((tablesRes.data ?? []).map((t) => [t.id, t.label])),
     items: [],
     history: [],
     generatedAt,
