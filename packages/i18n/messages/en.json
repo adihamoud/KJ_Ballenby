@@ -218,7 +218,8 @@
       "table": "Table {label}",
       "walkUp": "Walk-up",
       "priority": "Priority {n}",
-      "pinned": "Pinned",
+      "pinned": "Moved by hand",
+      "pinnedHint": "This song stays in this place; the fair order arranges the others around it. Use the pin button to give it back to the fair order.",
       "startedAgo": "started {time}",
       "autoStart": "Auto-start the next song after Done",
       "actions": {
@@ -227,8 +228,8 @@
         "doneNext": "Done, next",
         "skip": "Skip",
         "approve": "Approve",
-        "pin": "Pin",
-        "unpin": "Unpin",
+        "pin": "Keep in this place",
+        "unpin": "Return to the fair order",
         "moveUp": "Move up",
         "moveDown": "Move down",
         "priorityUp": "Raise priority",
@@ -241,7 +242,7 @@
         "instructions": "To pick up a song, press Space or Enter. Use the up and down arrows to move it, Space or Enter to drop it, Escape to cancel.",
         "picked": "Picked up {title} at place {place}.",
         "over": "{title} is over place {place}.",
-        "dropped": "{title} dropped at place {place}. It stays pinned there.",
+        "dropped": "{title} dropped at place {place} and stays there.",
         "cancelled": "Moving {title} cancelled."
       }
     },
@@ -341,7 +342,7 @@
     "queue": {
       "title": "Tonight’s queue",
       "metaTitle": "Queue",
-      "hint": "Move songs up or down, pin them in place, raise priority, approve or skip. Changes show on the DJ console and guests’ phones within seconds.",
+      "hint": "Drag songs or use the arrows to change the order (a moved song stays where you put it), raise priority, approve or skip. Changes show on the DJ console and guests’ phones within seconds.",
       "openConsole": "Open the DJ console",
       "dismiss": "Dismiss"
     },
