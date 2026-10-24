@@ -52,7 +52,7 @@ test.describe("guest song request (demo night)", () => {
     await expect(mine).toContainText("Dana, Yossi");
     // T1 already has two songs waiting; round robin puts Dana's after the other tables' turns.
     await expect(mine.getByTestId("my-position")).toHaveText("6");
-    await expect(mine).toContainText(/6 songs before you/i);
+    await expect(mine).toContainText(/5 songs before you/i);
 
     // The DJ console in the same browser shows the request in its fair place.
     await page.goto("/en/dj");

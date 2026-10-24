@@ -324,6 +324,10 @@ export interface Database {
         Args: { p_table_id: string };
         Returns: string | null;
       };
+      venue_table_labels: {
+        Args: { p_venue_id: string };
+        Returns: { id: string; label: string }[];
+      };
       submit_request: {
         Args: {
           p_night_id: string;

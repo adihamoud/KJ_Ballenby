@@ -32,7 +32,7 @@ Where UI labels are uncertain the text says "look for"; provider dashboards chan
 4. **Authentication -> URL Configuration** (look for "URL Configuration" or "Redirect URLs"):
    - **Site URL**: your production URL once Vercel is set up (for now `http://localhost:3000`).
    - **Additional Redirect URLs**: add `http://localhost:3000/auth/callback`, your production `https://<domain>/auth/callback`, and the Vercel preview wildcard `https://*-<your-vercel-team-or-user>.vercel.app/auth/callback`.
-5. **Authentication -> Sign In / Providers -> Anonymous sign-ins**: turn it **on**. Guests who scan a table QR are signed in anonymously so their song requests have a real user id (ADR-009). Leave the default rate limit unless a venue reports guests being blocked behind one Wi-Fi network.
+5. **Authentication -> Sign In / Providers -> Anonymous sign-ins**: turn it **on**. Guests who scan a table QR are signed in anonymously so their song requests have a real user id (ADR-009). Then **Authentication -> Rate Limits -> Rate limit for anonymous users**: raise it from the default 30 per hour to a few hundred (300 is plenty). The limit is per IP address and a venue's guests share one Wi-Fi address, so the default locks new guests out after 30 joins in an hour; the staged night of 2026-10-24 hit it within minutes. Anonymous users accumulate in `auth.users`; schedule a periodic clean-up of anonymous users older than a few days before go-live.
 6. Repeat steps 1-5 for a second project `kj-ballenby-staging` used by preview deploys and CI (optional in phase 1; recommended before phase 2).
 7. Locally: `pnpm dlx supabase login`, then in the repo `pnpm dlx supabase link --project-ref <project-ref>`. Migrations are applied with `pnpm dlx supabase db push`.
 
