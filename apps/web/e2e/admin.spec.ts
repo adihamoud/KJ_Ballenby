@@ -25,7 +25,8 @@ test.describe("venue admin (demo venue)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("סקירה");
     await expect(page.getByTestId("admin-venue-name")).toContainText("Demo Karaoke Bar");
     const nav = page.getByTestId("admin-nav");
-    await expect(nav.getByRole("link", { name: "שולחנות" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "שולחנות", exact: true })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "שולחנות הערב" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "דף QR" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "הגדרות" })).toBeVisible();
   });
