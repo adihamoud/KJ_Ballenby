@@ -54,7 +54,7 @@ function loadYouTubeApi(): Promise<typeof YT> {
 export function useYouTubePlayer(
   containerRef: React.RefObject<HTMLDivElement | null>,
   videoId: string | null,
-  onEnded?: () => void,
+  { enabled = true, onEnded }: { enabled?: boolean; onEnded?: () => void } = {},
 ): PlayerControls {
   const playerRef = useRef<YT.Player | null>(null);
   const readyRef = useRef(false);
@@ -69,10 +69,15 @@ export function useYouTubePlayer(
   const [rate, setRateState] = useState(1);
   const pendingVideo = useRef<string | null>(videoId);
 
+  // (Re)create the player whenever the panel that owns the container is mounted. The panel only
+  // exists while a night is open, so a console that opens the night from inside the page (or
+  // sees it closed and reopened) gets a fresh player instead of a container that stays empty.
   useEffect(() => {
+    if (!enabled) return;
     const container = containerRef.current;
     if (!container) return;
     let cancelled = false;
+    setStatus("loading");
     loadYouTubeApi().then((api) => {
       if (cancelled || playerRef.current) return;
       const host = document.createElement("div");
@@ -122,10 +127,13 @@ export function useYouTubePlayer(
       playerRef.current?.destroy();
       playerRef.current = null;
       readyRef.current = false;
+      setStatus("loading");
+      setCurrentTime(0);
+      setDuration(0);
     };
-    // The container never changes identity; mount once.
+    // The container's identity follows `enabled` (the panel mounts with the open night).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
     pendingVideo.current = videoId;

@@ -41,6 +41,27 @@ test.describe("DJ console (demo night)", () => {
     await expect(page.getByTestId("queue-panel")).toBeHidden();
   });
 
+  test("the player re-attaches after the night is closed and reopened", async ({ page }) => {
+    const iframe = page.getByTestId("player-panel").locator("iframe");
+    // The YouTube IFrame API loads from the network; without it there is nothing to assert.
+    const loaded = await iframe
+      .waitFor({ state: "attached", timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false);
+    test.skip(!loaded, "YouTube IFrame API unreachable from this runner");
+
+    page.once("dialog", (dialog) => void dialog.accept());
+    await page.getByRole("button", { name: "Close night" }).first().click();
+    await expect(page.getByTestId("player-panel")).toHaveCount(0);
+    await page.getByRole("button", { name: "Open night" }).first().click();
+
+    // A fresh player mounts in the new panel instead of the old one lingering detached.
+    await expect(iframe).toBeAttached({ timeout: 15_000 });
+    await expect(page.getByTestId("player-panel")).not.toContainText("Loading player", {
+      timeout: 15_000,
+    });
+  });
+
   test("Hebrew console renders right-to-left", async ({ page }) => {
     await page.goto("/he/dj");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
