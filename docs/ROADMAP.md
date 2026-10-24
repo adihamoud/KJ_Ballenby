@@ -36,7 +36,7 @@ Done when:
 Deliverables:
 
 - [ ] Full schema from `DATA_MODEL.md` with RLS policies and negative-case RLS tests
-- [x] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home without sign-in, see ADR-008; `/admin/tables` adds, renames, deactivates and re-codes tables through Server Actions under RLS, `/admin/qr` prints one A4 card per active table with the QR of `/<locale>/j/<qr_token>` and the typed code; staff selection across several venues pending)
+- [x] Venue + table admin pages; printable QR sheet; `resolve_table` RPC and `/j/<qr_token>` join flow with code fallback (RPC, `/join`, `/j/<token>` and guest home without sign-in, see ADR-008; `/admin/tables` adds, renames, deactivates and re-codes tables through Server Actions under RLS, `/admin/qr` prints one A4 card per active table with the QR of `/<locale>/j/<qr_token>` and the typed code; `/admin/queue` gives owners and admins the DJ console's queue manager (move up/down, pin, priority, approve, start, done, skip, open/close night) without the player, sharing the console's `useDjNight` state hook; staff selection across several venues pending)
 - [~] Groups: auto-join table group, ad hoc groups with share link, member list (`join_table` RPC auto-joins the table group at join and request time, ADR-009; ad hoc groups, share link and member list pending)
 - [ ] Catalog upload (CSV + VirtualDJ XML) to Storage; `catalog-import` Edge Function; import status UI
 - [~] Catalog search (tsvector + prefix) with language filter, fast on older phones (guest home search with YouTube versions and thumbnails via `search_songs`; perf check on real phones pending)
