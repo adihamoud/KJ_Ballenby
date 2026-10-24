@@ -148,7 +148,8 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
   }, [chosenVideo, playerItem]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const player = useYouTubePlayer(containerRef, selectedVideoId);
+  // The player panel (and its container) only exists while a night is open.
+  const player = useYouTubePlayer(containerRef, selectedVideoId, { enabled: night !== null });
   const mic = useMicChannel();
 
   // Master mute silences both channels without forgetting their own mute state.
