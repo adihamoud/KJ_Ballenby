@@ -1,0 +1,290 @@
+{
+  "common": {
+    "appName": "KJ Ballenby",
+    "tagline": "Your karaoke, in a fair queue",
+    "loading": "Loading…",
+    "back": "Back",
+    "language": "Language"
+  },
+  "landing": {
+    "title": "Sing in turn, no fighting over the mic",
+    "subtitle": "Scan the QR code on your table, pick a song, and the app orders the queue fairly between tables.",
+    "guestCta": "Join as guest",
+    "cta": "Sign in",
+    "forVenues": "Run a venue? ",
+    "forVenuesLink": "Venue admin"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Choose how to continue",
+    "google": "Continue with Google",
+    "microsoft": "Continue with Microsoft",
+    "or": "or",
+    "phoneLabel": "Israeli phone number",
+    "phonePlaceholder": "050-123-4567",
+    "sendCode": "Text me a code",
+    "codeLabel": "Verification code",
+    "codePlaceholder": "123456",
+    "verify": "Verify",
+    "changePhone": "Change number",
+    "codeSent": "We sent a code to {phone}",
+    "guestHint": "Just here to sing? Guests don't need an account.",
+    "guestCta": "Join as guest",
+    "errors": {
+      "invalidPhone": "Enter a valid Israeli number, e.g. 050-123-4567",
+      "invalidCode": "That code is wrong or has expired",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "join": {
+    "title": "Join your table",
+    "subtitle": "Scan the QR code on your table, or type the code printed next to it.",
+    "codeLabel": "Table code",
+    "codePlaceholder": "DEMO1",
+    "nameLabel": "What should we call you?",
+    "namePlaceholder": "The name shown in the queue",
+    "nameHint": "Just tell us what to call you.",
+    "submit": "Join",
+    "joining": "Joining {table}",
+    "confirmSubmit": "Yes, that's my table",
+    "alreadyJoined": "You already joined {table} at {venue}.",
+    "backToTable": "Back to your table",
+    "errors": {
+      "invalidCode": "The code is 4–8 letters and digits",
+      "nameRequired": "Enter a name (up to 40 characters)",
+      "notFound": "We couldn't find a table with that code. Check it again or ask the staff.",
+      "unavailable": "We couldn't reach the server. Try again in a moment."
+    },
+    "tokenNotFound": {
+      "title": "This QR code is no longer active",
+      "body": "You can type the table code instead.",
+      "cta": "Enter a code"
+    }
+  },
+  "guest": {
+    "metaTitle": "My table",
+    "title": "Your table: {table}",
+    "joinedAs": "Joined as {name}",
+    "status": {
+      "open": "The night is on! Pick a song from the catalog below and tap Request.",
+      "closed": "The night hasn't started yet. We'll update when the DJ opens the queue.",
+      "gone": "This table is no longer active. Scan a new QR code or ask the staff for a code.",
+      "unknown": "We couldn't check the night status. We'll try again on the next refresh."
+    },
+    "switchTable": "Switch table",
+    "leave": "Leave table",
+    "search": {
+      "title": "Find a song",
+      "placeholder": "Song title or artist",
+      "languageFilter": "Filter by language",
+      "all": "All",
+      "lang": {
+        "he": "Hebrew",
+        "en": "English"
+      },
+      "noResults": "No songs match “{query}”. Try another word.",
+      "versions": "Versions",
+      "versionN": "Version {n}",
+      "openOnYoutube": "Open {title} on YouTube",
+      "errors": {
+        "noSession": "Join a table to search the catalog.",
+        "unavailable": "Search is unavailable right now. Try again in a moment."
+      },
+      "request": "Request",
+      "requestSong": "Request {title}",
+      "requested": "Sent! {title} is in your list."
+    },
+    "request": {
+      "title": "Request a song",
+      "close": "Close",
+      "singers": "Who's singing? (up to {max})",
+      "singerN": "Singer {n}",
+      "singerPlaceholder": "Name",
+      "addSinger": "+ Add a singer",
+      "removeSinger": "Remove singer {n}",
+      "note": "Note for the DJ (optional)",
+      "notePlaceholder": "Birthday, key change, no guide vocals…",
+      "submit": "Send request",
+      "errors": {
+        "noSession": "Join a table to request a song.",
+        "noIdentity": "We couldn't sign you in as a guest. Reload the page and try again.",
+        "notParticipant": "You're not at a table in tonight's queue. Rejoin your table and try again.",
+        "invalidInput": "Check the song and the singers' names.",
+        "unavailable": "The request didn't reach the server. Try again in a moment."
+      }
+    },
+    "queue": {
+      "title": "Your songs",
+      "length": "{count, plural, =0 {queue is empty} one {# song in the queue} other {# songs in the queue}}",
+      "empty": "You haven't requested anything yet. Pick a song below.",
+      "closed": "The queue opens when the DJ starts the night.",
+      "nowSinging": "On the mic: {title} ({singers})",
+      "youreNext": "You're up next with {title}! Head to the stage.",
+      "onMic": "You're on the mic!",
+      "awaitingApproval": "Waiting for the DJ to approve",
+      "place": "{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} in line · {ahead, plural, =0 {you're next} one {# song before you} other {# songs before you}}",
+      "cancel": "Cancel",
+      "confirmCancel": "Cancel this request?",
+      "errors": {
+        "noSession": "Join a table to see the queue.",
+        "noIdentity": "We couldn't sign you in as a guest. Reload the page and try again.",
+        "notParticipant": "You're not at a table in tonight's queue. Rejoin your table.",
+        "invalidInput": "Something was off with that request.",
+        "unavailable": "We couldn't reach the queue. We'll retry shortly."
+      }
+    }
+  },
+  "queue": {
+    "reject": {
+      "maxPendingUser": "You already have a song waiting. You can request another once it's sung.",
+      "maxPendingTable": "Your table already has the maximum number of songs waiting.",
+      "cooldown": "You just sang! Take a short break before your next song.",
+      "duplicateSong": "That song was requested or sung recently. Pick another one.",
+      "nightClosed": "The night isn't open right now.",
+      "cutoff": "Requests are closed for tonight. The night is about to end.",
+      "tooManySingers": "Too many singers for one song. Remove a name and try again.",
+      "duetsDisabled": "Duets aren't allowed tonight. One singer per song.",
+      "songInactive": "This song isn't available at the moment."
+    }
+  },
+  "app": {
+    "welcome": "Hi, {name}",
+    "noNight": "You haven't joined a night yet. Scan the QR code on your table.",
+    "signOut": "Sign out"
+  },
+  "dj": {
+    "title": "DJ console",
+    "metaTitle": "DJ console",
+    "demoBadge": "Demo",
+    "demoHint": "Supabase isn't configured, so changes stay in this browser.",
+    "signOut": "Sign out",
+    "connection": {
+      "live": "Live",
+      "reconnecting": "Reconnecting…",
+      "polling": "Polling"
+    },
+    "night": {
+      "on": "Night is on",
+      "off": "No open night",
+      "since": "since {time}",
+      "open": "Open night",
+      "close": "Close night",
+      "confirmClose": "Close the night? {count} waiting requests will be skipped.",
+      "closedTitle": "The night hasn't started",
+      "closedBody": "Open a night so guests can request songs. The queue, player and mixer wake up with it."
+    },
+    "tabs": {
+      "queue": "Queue",
+      "player": "Player",
+      "mixer": "Mixer"
+    },
+    "notStaff": {
+      "title": "You're not on any venue's staff",
+      "body": "Ask the venue owner to add you as a DJ, then reload this page."
+    },
+    "unavailable": {
+      "title": "We couldn't load the queue",
+      "body": "Check the connection and try again.",
+      "retry": "Try again"
+    },
+    "errors": {
+      "unavailable": "The change didn't reach the server. The queue was reloaded.",
+      "staleNight": "The night changed. The queue was reloaded.",
+      "demo": "Demo mode: nothing is saved.",
+      "notStaff": "You're no longer staff at this venue."
+    },
+    "queue": {
+      "title": "Queue",
+      "count": "{count, plural, =0 {empty} one {# song} other {# songs}}",
+      "nowSinging": "Now singing",
+      "nothingSinging": "Nobody is on the mic",
+      "nothingSingingHint": "Press Start on the next song when the singer is ready.",
+      "upNext": "Up next",
+      "pending": "Awaiting approval",
+      "empty": "The queue is empty. Guest requests show up here within seconds.",
+      "history": "Sung tonight",
+      "historyEmpty": "Nothing yet.",
+      "table": "Table {label}",
+      "walkUp": "Walk-up",
+      "priority": "Priority {n}",
+      "pinned": "Pinned",
+      "startedAgo": "started {time}",
+      "autoStart": "Auto-start the next song after Done",
+      "actions": {
+        "start": "Start",
+        "done": "Done",
+        "doneNext": "Done, next",
+        "skip": "Skip",
+        "approve": "Approve",
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "priorityUp": "Raise priority",
+        "priorityDown": "Lower priority",
+        "copy": "Copy for VirtualDJ",
+        "copied": "Copied"
+      }
+    },
+    "player": {
+      "title": "Player",
+      "status": {
+        "loading": "Loading player…",
+        "idle": "Idle",
+        "cued": "Cued",
+        "playing": "Playing",
+        "paused": "Paused",
+        "ended": "Ended",
+        "error": "Playback error"
+      },
+      "error": "YouTube couldn't play this version. Try another one.",
+      "empty": "Nothing to play",
+      "emptyHint": "Start a song from the queue, or wait for the next request.",
+      "onMic": "On the mic",
+      "nextUp": "Next up",
+      "versions": "Karaoke versions",
+      "versionN": "Version {n}",
+      "notEmbeddable": "Opens on YouTube",
+      "noVideos": "No karaoke video is linked to this song. Load it in VirtualDJ.",
+      "play": "Play",
+      "pause": "Pause",
+      "restart": "Restart",
+      "seek": "Position",
+      "startSong": "Start song",
+      "done": "Done",
+      "doneNext": "Done, next"
+    },
+    "mixer": {
+      "title": "Mixer",
+      "music": "Music",
+      "mic": "Mic",
+      "master": "Master",
+      "volume": "Volume",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "tempo": "Tempo",
+      "fadeOut": "Fade out",
+      "fading": "Fading…",
+      "enableMic": "Enable mic",
+      "disableMic": "Disable mic",
+      "micDenied": "Microphone access was denied. Allow it in the browser's site settings.",
+      "micUnsupported": "This browser can't route the microphone.",
+      "micHint": "The mic plays through the default speakers via the browser; the venue's hardware mixer keeps driving the PA.",
+      "gain": "Gain",
+      "echo": "Echo",
+      "echoAmount": "Echo amount",
+      "level": "Level",
+      "masterMute": "Mute everything",
+      "masterUnmute": "Unmute everything",
+      "masterHint": "Cuts music and mic together. Use it between songs or when the host talks."
+    }
+  },
+  "admin": {
+    "title": "Venue admin",
+    "comingSoon": "Venue settings, tables and catalog land here in phase 2."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "home": "Go home"
+  }
+}

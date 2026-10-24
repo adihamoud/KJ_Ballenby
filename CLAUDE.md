@@ -1,0 +1,67 @@
+# KJ Ballenby
+
+Multi-venue karaoke queue SaaS. Guests (mobile PWA) join a table by QR, request songs from the
+venue's catalog, and a rules engine orders the queue. DJs run the night from a dashboard; venue
+owners manage tables, catalog and rules. Hebrew (RTL) first, English second.
+
+Read `docs/README.md` first. The docs folder is the source of truth for product and architecture;
+`docs/ROADMAP.md` says what phase we are in.
+
+## Layout
+
+| Path                    | What                                                                      | Owner agent  |
+| ----------------------- | ------------------------------------------------------------------------- | ------------ |
+| `apps/web`              | Next.js 15 App Router. Guest, DJ, admin surfaces. Tailwind v4, next-intl. | frontend     |
+| `packages/queue-engine` | Pure TS rules engine. No I/O. 100% unit-tested.                           | queue-engine |
+| `packages/db`           | `Database` types + Supabase env helpers.                                  | database     |
+| `packages/i18n`         | Locale config and `messages/{he,en}.json`.                                | frontend     |
+| `supabase/`             | Migrations, RLS, seed, CLI config.                                        | database     |
+| `docs/`                 | PRD, architecture, data model, queue rules, roadmap, ADRs.                | planner      |
+| `.claude/agents`        | Agent definitions. `.claude/skills` repeatable workflows.                 | devops       |
+
+## Commands
+
+```bash
+pnpm install              # once
+pnpm dev                  # all dev servers (web on :3000)
+pnpm check                # lint + typecheck + unit tests (run before every commit)
+pnpm --filter @kj/web build
+pnpm --filter @kj/web test:e2e        # Playwright, needs a build first
+pnpm --filter @kj/queue-engine test:watch
+pnpm db:reset             # local Supabase (needs Docker): apply migrations + seed
+pnpm db:types             # regenerate packages/db/src/database.types.ts
+```
+
+Environment: copy `.env.example` to `apps/web/.env.local`. Without Supabase vars the app still
+builds and serves the landing/login pages (login buttons are disabled).
+
+## Conventions
+
+- TypeScript strict, `noUncheckedIndexedAccess` on. No `any`. Type-only imports use `import type`.
+- Server components by default. `"use client"` only where there is interaction or browser APIs.
+- All user-facing strings go through next-intl; add keys to **both** `he.json` and `en.json`
+  (a test fails otherwise). Use logical CSS (`ms-`, `me-`, `ps-`, `pe-`, `start`, `end`), never
+  `ml-`/`mr-`, so RTL works.
+- Database: every tenant table has `venue_id` and RLS. New tables need policies in the same
+  migration and a matching type in `packages/db/src/database.types.ts`. Never use the service-role
+  key in browser code. Migrations are forward-only: add a new file, never edit an applied one.
+- Queue logic lives in `packages/queue-engine` only. The web app and DB functions call it; they do
+  not re-implement rules. Every rule change ships with a test and a line in `docs/QUEUE_RULES.md`.
+- Commits: conventional (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`). Small PRs, one
+  concern each. CI must be green before merge.
+- Decisions that change architecture get an ADR in `docs/DECISIONS.md`.
+
+## Workflow for agents
+
+1. Pick a task from `docs/ROADMAP.md` or a GitHub issue. Read the relevant doc section.
+2. Branch from `main`: `feat/<area>-<short-name>`.
+3. Implement with tests. Run `pnpm check`. For UI, run the app and check both `/he` and `/en`.
+4. Open a PR with the template. Link the roadmap item. Ask for `/code-review`.
+5. Update docs in the same PR when behaviour or schema changes.
+
+## Do not
+
+- Do not commit secrets or `.env.local`. `.env.example` is the only env file in git.
+- Do not add payments, billing or external SMS providers before phase 3/5 without an ADR.
+- Do not bypass RLS with the service role in request handlers to "make it work".
+- Do not push directly to `main`.

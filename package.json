@@ -1,0 +1,38 @@
+{
+  "name": "kj-ballenby",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Multi-venue karaoke queue SaaS: guest PWA, DJ dashboard, venue admin",
+  "packageManager": "pnpm@10.34.7",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "supabase": "^2.121.0",
+    "turbo": "^2.11.9",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "supabase"
+    ]
+  }
+}
