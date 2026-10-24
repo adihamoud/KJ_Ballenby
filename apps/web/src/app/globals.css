@@ -89,3 +89,26 @@ body {
   outline: 2px solid var(--color-brand-2);
   outline-offset: 1px;
 }
+
+/* Printable QR sheet (admin): A4, white paper, two cards per row, no card split across pages. */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    color: #000;
+  }
+  .qr-sheet {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8mm;
+  }
+  .qr-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
