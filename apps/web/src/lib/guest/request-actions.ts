@@ -129,6 +129,7 @@ export async function cancelSongRequest(requestId: string): Promise<GuestQueueRe
     if (next) setDemoNight(session.guestId, next);
     return { ok: true, view: guestQueueView(next ?? loaded.night.snapshot, session.guestId, now) };
   }
+  if (!UUID_RE.test(requestId)) return { ok: false, kind: "error", error: "invalidInput" };
 
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return { ok: false, kind: "error", error: "noIdentity" };

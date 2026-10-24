@@ -9,7 +9,9 @@ import type { DjHistoryItem, DjQueueItem, DjSnapshot } from "./types";
 export type DjLoadResult =
   { ok: true; snapshot: DjSnapshot } | { ok: false; reason: "notStaff" | "unavailable" };
 
-const ACTIVE_STATUSES = ["pending", "queued", "now_singing"] as const;
+// `approved` is transitional (buildNightSnapshot maps it to queued or pending); include it so
+// the console sees the same rows the guest loader does.
+const ACTIVE_STATUSES = ["pending", "approved", "queued", "now_singing"] as const;
 
 /**
  * Load everything the DJ console needs for the signed-in user's venue. Falls back to the

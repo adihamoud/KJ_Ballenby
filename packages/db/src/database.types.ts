@@ -65,7 +65,10 @@ export interface SubmitRequestRow {
   reason: string | null;
 }
 
-/** Result of `resolve_table(p_code)`: a QR token or join code mapped to its venue and table. */
+/**
+ * Result of `resolve_table(p_code, p_venue_id)`: a QR token or join code mapped to its venue and
+ * table. Join codes are unique per venue only; without `p_venue_id` an ambiguous code yields no row.
+ */
 export interface ResolvedTableRow {
   table_id: string;
   table_label: string;
@@ -310,7 +313,7 @@ export interface Database {
         Returns: boolean;
       };
       resolve_table: {
-        Args: { p_code: string };
+        Args: { p_code: string; p_venue_id?: string | null };
         Returns: ResolvedTableRow[];
       };
       search_songs: {

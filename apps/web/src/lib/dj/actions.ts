@@ -6,12 +6,14 @@ import { getGuestSession } from "@/lib/guest/session";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { demoSnapshot } from "./demo-night";
 import { loadDjSnapshot } from "./load";
-import { applyHostAction } from "./queue-model";
+import { applyHostAction, closeNightSnapshot } from "./queue-model";
 import type { DjSnapshot, HostAction } from "./types";
 
 export type DjActionResponse =
   | { ok: true; snapshot: DjSnapshot }
   | { ok: false; error: "unavailable" | "notStaff" | "staleNight" | "demo" };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Latest snapshot for the signed-in DJ's venue (realtime hint handler and polling). */
 export async function refreshDjSnapshot(): Promise<DjActionResponse> {
@@ -33,6 +35,10 @@ export async function performHostAction(
 ): Promise<DjActionResponse> {
   const supabase = await createServerSupabase();
   if (!supabase) return demoHostAction(nightId, action);
+  // The approve entry id comes from the browser and becomes a primary key: uuid or nothing.
+  if (action.type === "approve" && !UUID_RE.test(action.entryId)) {
+    return failed("approve", "entry id is not a uuid");
+  }
 
   const loaded = await loadDjSnapshot();
   if (!loaded.ok) return { ok: false, error: loaded.reason };
@@ -129,7 +135,10 @@ export async function openNight(): Promise<DjActionResponse> {
   return refreshDjSnapshot();
 }
 
-/** Close the open night; whatever is still waiting is marked skipped (PRD H1). */
+/**
+ * Close the open night (PRD H1): the singer on the mic finishes as `done`, whatever is still
+ * waiting is marked `skipped`. Same transitions as `closeNightSnapshot`.
+ */
 export async function closeNight(nightId: string): Promise<DjActionResponse> {
   const supabase = await createServerSupabase();
   const now = new Date().toISOString();
@@ -138,21 +147,23 @@ export async function closeNight(nightId: string): Promise<DjActionResponse> {
     if (!guest) return { ok: false, error: "demo" };
     const current = getDemoNight(guest.guestId);
     if (!current.night || current.night.id !== nightId) return { ok: false, error: "staleNight" };
-    const closed: DjSnapshot = {
-      ...current,
-      night: { ...current.night, status: "closed" },
-      items: [],
-      generatedAt: now,
-    };
+    const closed = closeNightSnapshot(current, now);
     setDemoNight(guest.guestId, closed);
     return { ok: true, snapshot: closed };
   }
+
+  const sung = await supabase
+    .from("song_requests")
+    .update({ status: "done", updated_at: now })
+    .eq("night_id", nightId)
+    .eq("status", "now_singing");
+  if (sung.error) return failed("finish current singer", sung.error.message);
 
   const skipped = await supabase
     .from("song_requests")
     .update({ status: "skipped", updated_at: now })
     .eq("night_id", nightId)
-    .in("status", ["pending", "approved", "queued", "now_singing"]);
+    .in("status", ["pending", "approved", "queued"]);
   if (skipped.error) return failed("skip remaining requests", skipped.error.message);
 
   const ended = await supabase

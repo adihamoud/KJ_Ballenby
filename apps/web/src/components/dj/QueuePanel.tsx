@@ -20,6 +20,8 @@ export function virtualDjSearchText(item: Pick<DjQueueItem, "externalRef" | "tit
 
 export function QueuePanel({ snapshot, onAction, autoStart, onAutoStartChange }: QueuePanelProps) {
   const t = useTranslations("dj.queue");
+  // One clock for every relative time on the panel instead of a timer per row.
+  const now = useNow({ updateInterval: 30_000 });
   const singing = nowSinging(snapshot);
   const queued = orderedQueue(snapshot).filter((i) => i.status === "queued");
   const pending = pendingItems(snapshot);
@@ -53,7 +55,7 @@ export function QueuePanel({ snapshot, onAction, autoStart, onAutoStartChange }:
           {t("nowSinging")}
         </h3>
         {singing ? (
-          <NowSingingCard item={singing} onAction={onAction} autoStart={autoStart} />
+          <NowSingingCard item={singing} now={now} onAction={onAction} autoStart={autoStart} />
         ) : (
           <div className="card border-dashed p-4">
             <p className="font-medium">{t("nothingSinging")}</p>
@@ -76,12 +78,18 @@ export function QueuePanel({ snapshot, onAction, autoStart, onAutoStartChange }:
                 key={item.requestId}
                 className="card border-accent/40 flex flex-wrap items-center gap-3 p-3"
               >
-                <SongSummary item={item} />
+                <SongSummary item={item} now={now} />
                 <div className="ms-auto flex gap-2">
                   <button
                     type="button"
                     className="btn btn-primary min-h-10 px-4 text-sm"
-                    onClick={() => onAction({ type: "approve", requestId: item.requestId })}
+                    onClick={() =>
+                      onAction({
+                        type: "approve",
+                        requestId: item.requestId,
+                        entryId: crypto.randomUUID(),
+                      })
+                    }
                   >
                     {t("actions.approve")}
                   </button>
@@ -110,6 +118,7 @@ export function QueuePanel({ snapshot, onAction, autoStart, onAutoStartChange }:
               <QueueRow
                 key={item.requestId}
                 item={item}
+                now={now}
                 index={index}
                 total={queued.length}
                 highlighted={index < 3}
@@ -128,16 +137,17 @@ export function QueuePanel({ snapshot, onAction, autoStart, onAutoStartChange }:
 
 function NowSingingCard({
   item,
+  now,
   onAction,
   autoStart,
 }: {
   item: DjQueueItem;
+  now: Date;
   onAction: (action: HostAction) => void;
   autoStart: boolean;
 }) {
   const t = useTranslations("dj.queue");
   const format = useFormatter();
-  const now = useNow({ updateInterval: 30_000 });
   const entryId = item.entryId as string;
 
   return (
@@ -146,7 +156,7 @@ function NowSingingCard({
       data-testid="now-singing"
     >
       <div className="flex flex-wrap items-start gap-3">
-        <SongSummary item={item} large />
+        <SongSummary item={item} now={now} large />
         {item.startedAt && (
           <p className="text-muted ms-auto text-xs whitespace-nowrap">
             {t("startedAgo", { time: format.relativeTime(new Date(item.startedAt), now) })}
@@ -176,6 +186,7 @@ function NowSingingCard({
 
 function QueueRow({
   item,
+  now,
   index,
   total,
   highlighted,
@@ -183,6 +194,7 @@ function QueueRow({
   onAction,
 }: {
   item: DjQueueItem;
+  now: Date;
   index: number;
   total: number;
   highlighted: boolean;
@@ -206,7 +218,7 @@ function QueueRow({
         >
           {index + 1}
         </span>
-        <SongSummary item={item} />
+        <SongSummary item={item} now={now} />
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         <button
@@ -281,10 +293,17 @@ function QueueRow({
   );
 }
 
-function SongSummary({ item, large = false }: { item: DjQueueItem; large?: boolean }) {
+function SongSummary({
+  item,
+  now,
+  large = false,
+}: {
+  item: DjQueueItem;
+  now: Date;
+  large?: boolean;
+}) {
   const t = useTranslations("dj.queue");
   const format = useFormatter();
-  const now = useNow({ updateInterval: 30_000 });
   const duration = formatDuration(item.durationSec);
 
   return (

@@ -192,14 +192,33 @@ const unchanged = (snapshot: DjSnapshot): HostActionResult => ({
 });
 
 /**
- * Apply one host action. `now` is injected (ISO 8601) so results are reproducible;
- * `newId` mints ids for queue entries created by `approve`.
+ * Close the night (PRD H1): the singer on the mic finishes as `done` (they did sing, so cooldown
+ * and history see it), everything still waiting is `skipped`, and the night is marked closed.
+ * Pure; the server persists the same transitions with bulk updates.
+ */
+export function closeNightSnapshot(snapshot: DjSnapshot, now: string): DjSnapshot {
+  const d = draftOf(snapshot);
+  for (const item of [...d.items]) {
+    finish(d, item, item.status === "now_singing" ? "done" : "skipped", now);
+  }
+  return {
+    ...snapshot,
+    night: snapshot.night ? { ...snapshot.night, status: "closed" } : null,
+    items: d.items,
+    history: d.history,
+    generatedAt: now,
+  };
+}
+
+/**
+ * Apply one host action. `now` is injected (ISO 8601) so results are reproducible. The entry id
+ * for `approve` travels inside the action: the browser mints it, applies the action optimistically
+ * and sends the same action to the server, so both sides name the new `queue_entries` row alike.
  */
 export function applyHostAction(
   snapshot: DjSnapshot,
   action: HostAction,
   now: string,
-  newId: () => string = () => crypto.randomUUID(),
 ): HostActionResult {
   const d = draftOf(snapshot);
   const byRequest = (id: string) => d.items.find((i) => i.requestId === id);
@@ -209,7 +228,8 @@ export function applyHostAction(
     case "approve": {
       const item = byRequest(action.requestId);
       if (!item || item.status !== "pending") return unchanged(snapshot);
-      const entryId = newId();
+      if (d.items.some((i) => i.entryId === action.entryId)) return unchanged(snapshot);
+      const entryId = action.entryId;
       item.status = "queued";
       item.entryId = entryId;
       item.position = tailPosition(d.items.filter((i) => i.entryId).map((i) => i.position));

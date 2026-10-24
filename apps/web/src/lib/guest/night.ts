@@ -10,11 +10,12 @@ export interface GuestNight {
   snapshot: DjSnapshot;
   /** `auth.uid()` of the anonymous (or signed-in) guest; the demo guest id without Supabase. */
   userId: string;
-  /** The guest's group in the open night, once `join_table` has run. */
+  /** The guest's group (the cookie's table) in the open night, from `group_members`. */
   groupId: string | null;
   /**
-   * The table the guest actually sits at tonight (the group's table, verified by `join_table`),
-   * not the unsigned cookie's claim. Null when there is no open night or the join failed.
+   * The table the guest actually sits at tonight (the group's table, verified by membership or
+   * `join_table`), not the unsigned cookie's claim. Null when there is no open night or the join
+   * failed.
    */
   tableId: string | null;
 }
@@ -25,9 +26,11 @@ export type GuestNightResult =
 /**
  * Load the open night of the guest's venue as the guest is allowed to see it.
  *
- * Live mode runs under the guest's own Supabase session: RLS decides what comes back, and
- * `join_table` (idempotent) makes sure the guest is a participant of the night so the night's
- * requests and entries are readable at all. Without Supabase the per-browser demo night is used.
+ * Live mode runs under the guest's own Supabase session: RLS decides what comes back, so the
+ * guest must be a participant of the night for its requests and entries to be readable at all.
+ * Membership is read from `group_members`; `join_table` (a write under an advisory lock) runs
+ * only when the guest is not yet in the cookie's table for this night. Without Supabase the
+ * per-browser demo night is used.
  */
 export async function loadGuestNight(session: GuestSession): Promise<GuestNightResult> {
   const supabase = await createServerSupabase();
@@ -47,7 +50,7 @@ export async function loadGuestNight(session: GuestSession): Promise<GuestNightR
   const user = auth.user;
   if (!user) return { ok: false, reason: "noIdentity" };
 
-  const [nightRes, tablesRes] = await Promise.all([
+  const [nightRes, tablesRes, membersRes] = await Promise.all([
     supabase
       .from("nights")
       .select("id, status, started_at, closes_at, rules_snapshot")
@@ -55,9 +58,12 @@ export async function loadGuestNight(session: GuestSession): Promise<GuestNightR
       .eq("status", "open")
       .maybeSingle(),
     supabase.from("venue_tables").select("id, label").eq("venue_id", session.venueId),
+    // "group_members: read" lets a user see their own rows.
+    supabase.from("group_members").select("group_id").eq("user_id", user.id),
   ]);
   if (nightRes.error) return fail("nights", nightRes.error.message);
   if (tablesRes.error) return fail("venue_tables", tablesRes.error.message);
+  if (membersRes.error) return fail("group_members", membersRes.error.message);
 
   const night = nightRes.data;
   const generatedAt = new Date().toISOString();
@@ -81,14 +87,35 @@ export async function loadGuestNight(session: GuestSession): Promise<GuestNightR
   }
 
   // Participation first: the night's rows are only visible to members of one of its groups.
-  // `join_table` is idempotent and one round trip; it also moves the guest when the cookie
-  // names a different (valid) table than the group they were in.
-  const joined = await supabase.rpc("join_table", { p_table_id: session.tableId });
-  if (joined.error) {
-    console.error("join_table failed", { tableId: session.tableId, message: joined.error.message });
-    return fail("join_table", joined.error.message);
+  // This runs on every render and poll, so it is reads only; `join_table` (a write that takes a
+  // per-table advisory lock) runs once, when the guest is not yet in the cookie's table for this
+  // night: the night opened after they joined, or they moved to another table.
+  const myGroupIds = membersRes.data.map((m) => m.group_id);
+  let groupId: string | null = null;
+  if (myGroupIds.length > 0) {
+    const groupRes = await supabase
+      .from("groups")
+      .select("id")
+      .eq("night_id", night.id)
+      .eq("table_id", session.tableId)
+      .eq("is_active", true)
+      .in("id", myGroupIds)
+      .limit(1)
+      .maybeSingle();
+    if (groupRes.error) return fail("groups", groupRes.error.message);
+    groupId = groupRes.data?.id ?? null;
   }
-  const groupId = joined.data ?? null;
+  if (!groupId) {
+    const joined = await supabase.rpc("join_table", { p_table_id: session.tableId });
+    if (joined.error) {
+      console.error("join_table failed", {
+        tableId: session.tableId,
+        message: joined.error.message,
+      });
+      return fail("join_table", joined.error.message);
+    }
+    groupId = joined.data ?? null;
+  }
   const tableId = groupId ? session.tableId : null;
 
   const [requestsRes, entriesRes] = await Promise.all([

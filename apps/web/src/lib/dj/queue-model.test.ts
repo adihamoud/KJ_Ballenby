@@ -1,19 +1,23 @@
 import { demoSnapshot } from "./demo-night";
-import { applyHostAction, nextUp, nowSinging, orderedQueue, pendingItems } from "./queue-model";
+import {
+  applyHostAction,
+  closeNightSnapshot,
+  nextUp,
+  nowSinging,
+  orderedQueue,
+  pendingItems,
+} from "./queue-model";
 import type { DjSnapshot, HostAction } from "./types";
 
 const NOW = new Date("2026-10-23T20:30:00.000Z");
 const LATER = "2026-10-23T20:31:00.000Z";
-let seq = 0;
-const newId = () => `new-entry-${++seq}`;
 
 function snapshot(): DjSnapshot {
-  seq = 0;
   return demoSnapshot(NOW);
 }
 
 function apply(s: DjSnapshot, action: HostAction) {
-  return applyHostAction(s, action, LATER, newId);
+  return applyHostAction(s, action, LATER);
 }
 
 const titles = (s: DjSnapshot) => orderedQueue(s).map((i) => i.title);
@@ -32,7 +36,11 @@ describe("demo night", () => {
 describe("approve", () => {
   it("creates a queue entry, queues the request and lets the engine place it", () => {
     const s = snapshot();
-    const res = apply(s, { type: "approve", requestId: "demo-request-7" });
+    const res = apply(s, {
+      type: "approve",
+      requestId: "demo-request-7",
+      entryId: "new-entry-1",
+    });
     const item = res.snapshot.items.find((i) => i.requestId === "demo-request-7");
     expect(item?.status).toBe("queued");
     expect(item?.entryId).toBe("new-entry-1");
@@ -46,9 +54,39 @@ describe("approve", () => {
 
   it("ignores requests that are not pending", () => {
     const s = snapshot();
-    const res = apply(s, { type: "approve", requestId: "demo-request-2" });
+    const res = apply(s, { type: "approve", requestId: "demo-request-2", entryId: "new-entry-2" });
     expect(res.snapshot).toBe(s);
     expect(res.inserts).toEqual([]);
+  });
+
+  it("uses the client's entry id, so a follow-up action on that entry resolves", () => {
+    const s = snapshot();
+    const approved = apply(s, {
+      type: "approve",
+      requestId: "demo-request-7",
+      entryId: "client-entry",
+    });
+    const started = apply(approved.snapshot, { type: "start", entryId: "client-entry" });
+    expect(nowSinging(started.snapshot)?.title).toBe("Wonderwall");
+  });
+
+  it("ignores an approve whose entry id is already taken", () => {
+    const s = snapshot();
+    const res = apply(s, { type: "approve", requestId: "demo-request-7", entryId: "demo-entry-2" });
+    expect(res.snapshot).toBe(s);
+  });
+});
+
+describe("close night", () => {
+  it("finishes the singer as done, skips the rest and closes the night", () => {
+    const s = snapshot();
+    const closed = closeNightSnapshot(s, LATER);
+    expect(closed.night?.status).toBe("closed");
+    expect(closed.items).toEqual([]);
+    const sung = closed.history.find((h) => h.title === "Sweet Caroline");
+    expect(sung?.endedAt).toBe(LATER);
+    // Waiting songs were skipped, not sung: they never reach history.
+    expect(closed.history).toHaveLength(s.history.length + 1);
   });
 });
 

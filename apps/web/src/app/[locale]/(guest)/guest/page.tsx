@@ -28,7 +28,7 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
 
   const t = await getTranslations();
   const [live, catalog, night] = await Promise.all([
-    resolveTable(session.joinCode),
+    resolveTable(session.joinCode, session.venueId),
     searchSongs(session.venueId, ""),
     loadGuestNight(session),
   ]);

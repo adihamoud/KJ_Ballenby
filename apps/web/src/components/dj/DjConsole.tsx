@@ -7,7 +7,7 @@ import { useNightChanges } from "@/components/useNightChanges";
 import { closeNight, openNight, performHostAction, refreshDjSnapshot } from "@/lib/dj/actions";
 import type { DjActionResponse } from "@/lib/dj/actions";
 import { demoSnapshot } from "@/lib/dj/demo-night";
-import { applyHostAction, nextUp, nowSinging } from "@/lib/dj/queue-model";
+import { applyHostAction, closeNightSnapshot, nextUp, nowSinging } from "@/lib/dj/queue-model";
 import type { DjSnapshot, HostAction } from "@/lib/dj/types";
 import { MixerPanel } from "./MixerPanel";
 import { PlayerPanel } from "./PlayerPanel";
@@ -88,12 +88,7 @@ export function DjConsole({ initial }: { initial: DjSnapshot }) {
       const waiting = current.items.length;
       if (waiting > 0 && !window.confirm(t("night.confirmClose", { count: waiting }))) return;
       if (!current.persisted) {
-        setSnapshot({
-          ...current,
-          night: { ...current.night, status: "closed" },
-          items: [],
-          generatedAt: new Date().toISOString(),
-        });
+        setSnapshot(closeNightSnapshot(current, new Date().toISOString()));
         return;
       }
       const nightId = current.night.id;

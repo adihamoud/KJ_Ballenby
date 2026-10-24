@@ -83,7 +83,8 @@ export interface DjSnapshot {
 }
 
 export type HostAction =
-  | { type: "approve"; requestId: string }
+  /** `entryId` is minted by the client so the optimistic entry and the persisted row share an id. */
+  | { type: "approve"; requestId: string; entryId: string }
   | { type: "start"; entryId: string }
   | { type: "done"; entryId: string; startNext: boolean }
   | { type: "skip"; requestId: string }

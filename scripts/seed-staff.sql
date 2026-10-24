@@ -10,7 +10,7 @@
 insert into public.venue_members (venue_id, user_id, role)
 select '00000000-0000-0000-0000-000000000001', u.id, 'owner'
 from auth.users u
-where lower(u.email) = lower('adihx122@gmail.com')
+where lower(u.email) = lower('you@example.com')
 on conflict (venue_id, user_id) do update set role = excluded.role;
 
 -- Check: one row with your user id.
