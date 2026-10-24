@@ -299,6 +299,7 @@
     "nav": {
       "label": "Admin sections",
       "overview": "Overview",
+      "queue": "Queue",
       "tables": "Tables",
       "qr": "QR sheet",
       "settings": "Settings",
@@ -326,7 +327,15 @@
       "printQr": "Print QR sheet",
       "editSettings": "Edit settings",
       "on": "On",
-      "off": "Off"
+      "off": "Off",
+      "manageQueue": "Manage the queue"
+    },
+    "queue": {
+      "title": "Tonight’s queue",
+      "metaTitle": "Queue",
+      "hint": "Move songs up or down, pin them in place, raise priority, approve or skip. Changes show on the DJ console and guests’ phones within seconds.",
+      "openConsole": "Open the DJ console",
+      "dismiss": "Dismiss"
     },
     "tables": {
       "title": "Tables",
