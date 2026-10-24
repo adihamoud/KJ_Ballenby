@@ -150,7 +150,16 @@
   "app": {
     "welcome": "Hi, {name}",
     "noNight": "You haven't joined a night yet. Scan the QR code on your table.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "staff": {
+      "venue": "Your venue",
+      "role": "You're signed in as {role}",
+      "roles": {
+        "owner": "owner",
+        "admin": "admin",
+        "dj": "DJ"
+      }
+    }
   },
   "dj": {
     "title": "DJ console",
