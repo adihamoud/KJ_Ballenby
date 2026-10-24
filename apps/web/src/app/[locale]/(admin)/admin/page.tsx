@@ -27,11 +27,16 @@ export default async function AdminOverview({ params }: { params: Promise<{ loca
       {loaded.venue.mode === "demo" && <p className="text-muted text-sm">{t("demoHint")}</p>}
 
       <section className="card flex flex-col gap-3 p-5">
-        <h2 className="text-lg font-semibold">{t("queue.title")}</h2>
-        <p className="text-muted">{t("queue.hint")}</p>
-        <Link href="/admin/queue" className="btn btn-primary self-start">
-          {t("overview.manageQueue")}
-        </Link>
+        <h2 className="text-lg font-semibold">{t("nav.dj")}</h2>
+        <p className="text-muted">{t("overview.djHint")}</p>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/dj" className="btn btn-primary">
+            {t("overview.openDj")}
+          </Link>
+          <Link href="/admin/tonight" className="btn btn-secondary">
+            {t("nav.tonight")}
+          </Link>
+        </div>
       </section>
 
       <section className="card flex flex-col gap-3 p-5">

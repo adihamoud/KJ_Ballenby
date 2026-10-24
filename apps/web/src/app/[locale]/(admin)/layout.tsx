@@ -1,9 +1,11 @@
 import { readSupabaseEnv } from "@kj/db";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { Link, redirect } from "@/i18n/navigation";
 import { loadAdminVenue } from "@/lib/admin/venue";
+import { loadDjSnapshot } from "@/lib/dj/load";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 // Session and venue data depend on cookies; never prerender.
@@ -60,8 +62,11 @@ export default async function AdminLayout({
   }
 
   const { venue } = loaded;
+  // Loaded once per admin visit (layouts persist across admin tabs); the console keeps itself
+  // fresh after that through realtime and polling.
+  const dj = await loadDjSnapshot();
   return (
-    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-6 px-4 py-6 print:max-w-none print:gap-0 print:p-0">
+    <AdminShell djInitial={dj.ok ? dj.snapshot : null}>
       <header className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex flex-col">
           <span className="text-muted text-xs font-semibold tracking-wide uppercase">
@@ -87,6 +92,6 @@ export default async function AdminLayout({
       <AdminNav mode={venue.mode} locale={locale} />
 
       {children}
-    </div>
+    </AdminShell>
   );
 }

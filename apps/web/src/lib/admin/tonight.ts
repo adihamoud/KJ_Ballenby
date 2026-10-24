@@ -3,6 +3,7 @@
 
 import { orderedQueue } from "@/lib/dj/queue-model";
 import type { DjSnapshot } from "@/lib/dj/types";
+import { estimateStarts } from "@/lib/dj/wait";
 
 export interface TonightGroup {
   id: string;
@@ -42,6 +43,8 @@ export interface TableSong {
   /** Requested at (waiting songs), started at (on the mic) or finished at (sung). */
   at: string;
   movedByHand: boolean;
+  /** Estimated start (ISO) for queued songs, from the queue order and song lengths. */
+  estimatedStartAt: string | null;
 }
 
 export interface TableBoardRow {
@@ -91,6 +94,7 @@ export function buildTableBoard(
   const open = snapshot.night?.status === "open";
   const queued = open ? orderedQueue(snapshot).filter((i) => i.status === "queued") : [];
   const placeOf = new Map(queued.map((item, index) => [item.requestId, index + 1] as const));
+  const starts = open ? estimateStarts(snapshot, snapshot.generatedAt) : new Map<string, number>();
   const nameOf = new Map(seating.profiles.map((p) => [p.id, p.display_name] as const));
   const items = open ? snapshot.items : [];
   const history = open ? snapshot.history : [];
@@ -150,6 +154,10 @@ export function buildTableBoard(
       place: status === "queued" ? (placeOf.get(i.requestId) ?? null) : null,
       at,
       movedByHand: i.lockedByHost,
+      estimatedStartAt:
+        status === "queued" && starts.has(i.requestId)
+          ? new Date(starts.get(i.requestId)!).toISOString()
+          : null,
     });
 
     const singing = tableItems.find((i) => i.status === "now_singing");
@@ -172,6 +180,7 @@ export function buildTableBoard(
         place: null,
         at: h.endedAt,
         movedByHand: false,
+        estimatedStartAt: null,
       }))
       .sort((a, b) => b.at.localeCompare(a.at));
 

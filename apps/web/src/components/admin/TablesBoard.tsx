@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useNightChanges } from "@/components/useNightChanges";
 import { refreshTonightBoard } from "@/lib/admin/tonight-actions";
@@ -16,6 +16,7 @@ export function TablesBoard({ initial }: { initial: TableBoard }) {
   const [board, setBoard] = useState(initial);
   const [pending, startTransition] = useTransition();
   const now = useNow({ updateInterval: 30_000 });
+  const highlighted = useHashHighlight();
 
   const refresh = useCallback(() => {
     startTransition(async () => {
@@ -53,6 +54,7 @@ export function TablesBoard({ initial }: { initial: TableBoard }) {
             row={row}
             now={now}
             nightOpen={!!board.nightId}
+            highlighted={highlighted === anchorOf(row)}
           />
         ))}
       </div>
@@ -60,7 +62,17 @@ export function TablesBoard({ initial }: { initial: TableBoard }) {
   );
 }
 
-function TableCard({ row, now, nightOpen }: { row: TableBoardRow; now: Date; nightOpen: boolean }) {
+function TableCard({
+  row,
+  now,
+  nightOpen,
+  highlighted,
+}: {
+  row: TableBoardRow;
+  now: Date;
+  nightOpen: boolean;
+  highlighted: boolean;
+}) {
   const t = useTranslations("admin.tonight");
   const format = useFormatter();
   const time = (iso: string) =>
@@ -74,11 +86,13 @@ function TableCard({ row, now, nightOpen }: { row: TableBoardRow; now: Date; nig
 
   return (
     <article
-      className={`card flex flex-col gap-3 p-4 ${opened ? "" : "opacity-70"} ${
+      className={`card flex scroll-mt-24 flex-col gap-3 p-4 transition-shadow duration-700 ${opened ? "" : "opacity-70"} ${
         row.nowSinging ? "border-brand" : ""
-      }`}
+      } ${highlighted ? "ring-brand-2 shadow-2xl ring-2" : ""}`}
       data-testid="table-card"
       data-table-label={row.label ?? ""}
+      data-highlighted={highlighted || undefined}
+      id={anchorOf(row)}
     >
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-col">
@@ -159,6 +173,13 @@ function TableCard({ row, now, nightOpen }: { row: TableBoardRow; now: Date; nig
                     <SongLine song={song} />
                     <p className="text-muted text-xs">
                       {t("requested", { ago: ago(song.at) })}
+                      {song.estimatedStartAt && (
+                        <span className="text-text ms-2" data-testid="table-starts">
+                          {t("startsAround", {
+                            when: format.relativeTime(new Date(song.estimatedStartAt), now),
+                          })}
+                        </span>
+                      )}
                       {song.movedByHand && (
                         <span className="text-brand ms-2">{t("movedByHand")}</span>
                       )}
@@ -211,4 +232,35 @@ function SongLine({ song, compact = false }: { song: TableSong; compact?: boolea
       )}
     </p>
   );
+}
+
+/** Anchor id of a table card, the target of "Show on the tables board" links. */
+function anchorOf(row: TableBoardRow): string {
+  return `table-${row.tableId ?? "walk-up"}`;
+}
+
+/**
+ * The table named in the URL hash (`#table-<id>`), highlighted for a few seconds and scrolled into
+ * view. Read on arrival and on hash changes; client navigation does not update CSS `:target`.
+ */
+function useHashHighlight(): string | null {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    let clear: ReturnType<typeof setTimeout> | null = null;
+    const apply = () => {
+      const hash = decodeURIComponent(window.location.hash.slice(1));
+      if (!hash.startsWith("table-")) return;
+      setId(hash);
+      document.getElementById(hash)?.scrollIntoView({ block: "center", behavior: "smooth" });
+      if (clear) clearTimeout(clear);
+      clear = setTimeout(() => setId(null), 4000);
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => {
+      window.removeEventListener("hashchange", apply);
+      if (clear) clearTimeout(clear);
+    };
+  }, []);
+  return id;
 }

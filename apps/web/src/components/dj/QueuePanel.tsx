@@ -22,6 +22,7 @@ import { useFormatter, useNow, useTranslations } from "next-intl";
 import type { DjHistoryItem, DjQueueItem, DjSnapshot, HostAction } from "@/lib/dj/types";
 import { nowSinging, orderedQueue, pendingItems } from "@/lib/dj/queue-model";
 import { formatDuration } from "@/lib/youtube";
+import { TableChip } from "./TableInfo";
 
 interface QueuePanelProps {
   snapshot: DjSnapshot;
@@ -434,7 +435,9 @@ function SongSummary({
         <span className="text-text" dir="auto">
           {item.singers.join(" + ")}
         </span>
-        <Chip>{item.tableLabel ? t("table", { label: item.tableLabel }) : t("walkUp")}</Chip>
+        <TableChip tableId={item.tableId}>
+          {item.tableLabel ? t("table", { label: item.tableLabel }) : t("walkUp")}
+        </TableChip>
         {item.priority > 0 && <Chip tone="accent">{t("priority", { n: item.priority })}</Chip>}
         {item.lockedByHost && (
           <Chip tone="brand" hint={t("pinnedHint")}>
@@ -475,7 +478,9 @@ function HistoryList({ history }: { history: DjHistoryItem[] }) {
               </span>
               <span className="truncate font-medium">{h.title}</span>
               <span className="text-muted truncate">{h.singers.join(" + ")}</span>
-              {h.tableLabel && <Chip>{t("table", { label: h.tableLabel })}</Chip>}
+              {h.tableLabel && (
+                <TableChip tableId={h.tableId}>{t("table", { label: h.tableLabel })}</TableChip>
+              )}
             </li>
           ))}
         </ul>

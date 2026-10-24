@@ -83,3 +83,19 @@ describe("buildTableBoard when no night is open", () => {
     expect(board.totals).toEqual({ openTables: 0, guests: 0, waiting: 0, sung: 0 });
   });
 });
+
+describe("buildTableBoard start estimates", () => {
+  it("estimates a start for queued songs only, later places later", () => {
+    const board = buildTableBoard(demoSnapshot(NOW));
+    const songs = board.rows.flatMap((r) => r.waiting);
+    for (const s of songs) {
+      if (s.status === "queued") expect(s.estimatedStartAt).not.toBeNull();
+      else expect(s.estimatedStartAt).toBeNull();
+    }
+    const queued = songs
+      .filter((s) => s.status === "queued")
+      .sort((a, b) => (a.place ?? 0) - (b.place ?? 0));
+    const times = queued.map((s) => Date.parse(s.estimatedStartAt!));
+    expect([...times].sort((a, b) => a - b)).toEqual(times);
+  });
+});
