@@ -115,8 +115,8 @@ Priority: **P1** = phase 2 core, **P2** = phase 3, **P3** = later.
 **A1. Catalog upload (P1).** As an admin I upload my song list and guests can search it minutes later.
 
 - Accepts VirtualDJ library export (XML) or CSV with at least `title, artist`; optional `language, duration_sec, external_ref`.
-- Upload creates a `catalog_imports` row; processing is asynchronous and shows progress and a stats summary (inserted, updated, skipped, errors).
-- Re-uploading upserts on `(venue_id, title, artist)`; songs missing from the new file can optionally be deactivated.
+- The file is previewed (songs found, skipped, duplicates, first rows) before anything changes. The import creates a `catalog_imports` row and shows progress and a stats summary (inserted, updated, hidden, skipped); see ADR-010.
+- Re-uploading upserts on `(venue_id, title, artist)`, ignoring case; songs missing from the new file can optionally be deactivated.
 
 **A2. Tables and QR codes (P1).** As an admin I create tables and print their QR codes.
 

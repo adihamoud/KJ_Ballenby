@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { loadAdminRules, loadAdminTables, loadAdminVenue } from "@/lib/admin/venue";
+import { loadCatalogOverview } from "@/lib/catalog/load";
 
 export async function generateMetadata() {
   const t = await getTranslations("admin");
@@ -14,9 +15,10 @@ export default async function AdminOverview({ params }: { params: Promise<{ loca
   const loaded = await loadAdminVenue();
   if (!loaded.ok) return null; // the layout renders the explanation
   const t = await getTranslations("admin");
-  const [tables, rules] = await Promise.all([
+  const [tables, rules, catalog] = await Promise.all([
     loadAdminTables(loaded.venue),
     loadAdminRules(loaded.venue),
+    loadCatalogOverview(loaded.venue),
   ]);
   const active = tables.ok ? tables.tables.filter((x) => x.is_active).length : 0;
   const total = tables.ok ? tables.tables.length : 0;
@@ -52,6 +54,18 @@ export default async function AdminOverview({ params }: { params: Promise<{ loca
             {t("overview.printQr")}
           </Link>
         </div>
+      </section>
+
+      <section className="card flex flex-col gap-3 p-5">
+        <h2 className="text-lg font-semibold">{t("nav.catalog")}</h2>
+        <p className="text-muted">
+          {catalog.ok
+            ? t("overview.catalog", { count: catalog.overview.active })
+            : t("unavailable.body")}
+        </p>
+        <Link href="/admin/catalog" className="btn btn-primary self-start">
+          {t("overview.manageCatalog")}
+        </Link>
       </section>
 
       <section className="card flex flex-col gap-3 p-5">

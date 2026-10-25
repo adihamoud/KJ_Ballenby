@@ -1,6 +1,7 @@
 export type {
   AppLocale,
   CatalogImportRow,
+  CatalogImportStats,
   Database,
   GroupMemberRow,
   GroupRow,
