@@ -25,6 +25,8 @@ export default async function JoinPage({
   const t = await getTranslations();
   const session = await getGuestSession();
   const code = typeof query.code === "string" ? query.code : "";
+  // Without Supabase the demo venue is the only one, and its code is nowhere else on screen.
+  const demo = !process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-5">
@@ -41,6 +43,12 @@ export default async function JoinPage({
         <QrIcon size={20} className="text-brand-2 mt-0.5 shrink-0" />
         <span>{t("join.scanHint")}</span>
       </p>
+
+      {demo && (
+        <p className="text-faint px-1 text-center text-sm" data-testid="demo-hint">
+          {t("join.demoHint", { code: "DEMO1" })}
+        </p>
+      )}
 
       {session && (
         <p className="card text-muted mt-auto p-4 text-center text-sm">

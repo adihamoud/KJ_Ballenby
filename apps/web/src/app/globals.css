@@ -106,7 +106,6 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-brand-2);
   outline-offset: 2px;
-  border-radius: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -166,8 +165,15 @@ body {
   padding-inline: 1rem;
   font-size: 0.875rem;
 }
-.btn:hover {
-  filter: brightness(1.06);
+/* Pointer devices only: a touch "hover" would stick to the button after the tap. */
+@media (hover: hover) {
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
 }
 .btn:active {
   transform: scale(0.97);
@@ -177,10 +183,6 @@ body {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-}
-.btn-ghost:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
 }
 
 /* ---------- Surfaces ---------- */

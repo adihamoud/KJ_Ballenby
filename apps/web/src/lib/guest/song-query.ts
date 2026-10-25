@@ -2,6 +2,8 @@
 // No imports from server-only modules here.
 
 export const SONG_QUERY_MAX = 60;
+/** Rows one search returns; when a page is this long there may be more. */
+export const SONG_SEARCH_LIMIT = 30;
 export const SONG_LANGUAGES = ["he", "en"] as const;
 export type SongLanguage = (typeof SONG_LANGUAGES)[number];
 

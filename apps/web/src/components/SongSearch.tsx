@@ -8,7 +8,7 @@ import { useOptionalGuestNight } from "@/components/GuestNightContext";
 import { CheckIcon, CloseIcon, PlayIcon, SearchIcon, YoutubeIcon } from "@/components/icons";
 import { searchSongsAction } from "@/lib/guest/song-actions";
 import { RequestSheet } from "./RequestSheet";
-import { SONG_LANGUAGES, type SongLanguage } from "@/lib/guest/song-query";
+import { SONG_LANGUAGES, SONG_SEARCH_LIMIT, type SongLanguage } from "@/lib/guest/song-query";
 import { formatDuration, youtubeThumbnailUrl, youtubeWatchUrl } from "@/lib/youtube";
 
 const DEBOUNCE_MS = 250;
@@ -75,7 +75,9 @@ export function SongSearch({
         </h2>
         {!error && (
           <span className="text-muted text-sm tabular-nums">
-            {t("results", { count: songs.length })}
+            {songs.length >= SONG_SEARCH_LIMIT
+              ? t("resultsMore", { count: songs.length })
+              : t("results", { count: songs.length })}
           </span>
         )}
       </div>
@@ -255,7 +257,7 @@ function SongCard({ song, onRequest }: { song: SearchSongRow; onRequest?: () => 
           {duration && <span className="text-faint ms-2 tabular-nums">{duration}</span>}
         </p>
 
-        {song.videos.length > 1 && (
+        {(song.videos.length > 1 || song.videos[0]?.label) && (
           <ul className="mt-0.5 flex flex-wrap gap-1.5" aria-label={t("versions")}>
             {song.videos.map((v, i) => (
               <li key={v.youtube_id}>

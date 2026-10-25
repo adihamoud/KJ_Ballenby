@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { useNow, useTranslations } from "next-intl";
 import { useGuestNight } from "@/components/GuestNightContext";
 import { useNightChanges } from "@/components/useNightChanges";
@@ -188,11 +188,20 @@ function RequestRow({
   );
 }
 
-/** "in about 12 min", refreshed every half minute; "any minute now" once it is under two. */
+/**
+ * "in about 12 min", refreshed every half minute; "any minute now" once it is under two.
+ * Rendered on the client only: the server's clock and the guest's can land on different
+ * minutes, and a hydration mismatch would re-render the whole card.
+ */
 function Eta({ startsAt }: { startsAt: string | null }) {
   const t = useTranslations("guest.queue");
   const now = useNow({ updateInterval: 30_000 });
-  if (!startsAt) return null;
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  if (!startsAt || !mounted) return null;
   const minutes = Math.max(0, Math.round((Date.parse(startsAt) - now.getTime()) / 60_000));
   return (
     <span className="ms-1.5 inline-flex items-center gap-1 whitespace-nowrap">

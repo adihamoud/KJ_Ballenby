@@ -34,14 +34,19 @@ export function guestQueueView(
   const singing = open ? nowSinging(snapshot) : null;
   const indexByRequest = new Map(ordered.map((item, index) => [item.requestId, index] as const));
   const waitingOffset = singing ? 1 : 0;
-  const starts = open ? estimateStarts(snapshot, now) : new Map<string, number>();
-
-  const mine: GuestRequestView[] = open
+  const own = open
     ? snapshot.items
         .filter((item) => userId !== null && item.requestedBy === userId)
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-        .map((item) => toGuestView(item, indexByRequest.get(item.requestId), waitingOffset, starts))
     : [];
+  // A second ordering pass, so only when there is a queued song of ours to place in time.
+  const starts = own.some((item) => item.status === "queued")
+    ? estimateStarts(snapshot, now)
+    : new Map<string, number>();
+
+  const mine: GuestRequestView[] = own.map((item) =>
+    toGuestView(item, indexByRequest.get(item.requestId), waitingOffset, starts),
+  );
 
   return {
     mode: snapshot.mode,
