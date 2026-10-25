@@ -1,0 +1,22 @@
+name: PR title
+
+# PRs are squash-merged and the title becomes the commit subject on main, which release-please
+# turns into the version bump and the CHANGELOG.md line. See ADR-011 in docs/DECISIONS.md.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    name: Conventional PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/check-pr-title.mjs
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}

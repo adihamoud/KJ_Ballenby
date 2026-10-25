@@ -48,26 +48,30 @@ builds and serves the landing/login pages (login buttons are disabled).
   key in browser code. Migrations are forward-only: add a new file, never edit an applied one.
 - Queue logic lives in `packages/queue-engine` only. The web app and DB functions call it; they do
   not re-implement rules. Every rule change ships with a test and a line in `docs/QUEUE_RULES.md`.
-- Commits: conventional (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`). Small PRs, one
-  concern each. CI must be green before merge.
+- PR titles: conventional (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, optional
+  scope, `!` for breaking). PRs are squash-merged and the title becomes the commit on `main` and
+  the changelog line. Commits inside a branch should still be conventional by habit. Small PRs,
+  one concern each. CI must be green before merge.
 - Decisions that change architecture get an ADR in `docs/DECISIONS.md`.
 
 ## Versioning
 
 Automatic, see ADR-011. Every push to `main` updates a `chore: release X.Y.Z` PR (release-please)
-that bumps the version and writes `CHANGELOG.md` from conventional commit subjects; merging it
-tags `vX.Y.Z`. Every page footer shows the version, short commit and `preview`/`dev` channel.
+that bumps the version and writes `CHANGELOG.md` from the squash commits' subjects (= PR titles);
+merging it tags `vX.Y.Z`. Every page footer shows the version, short commit and `preview`/`dev`
+channel. Merge with **squash only** (merge commits are disabled: they listed each PR twice).
 Never hand-edit `version` fields, the manifest or `CHANGELOG.md` entries for unreleased work:
-write a good commit subject instead (it is the changelog line). CI rejects non-conventional
-commits (`node scripts/check-commits.mjs origin/main..HEAD` locally). Ask the `release` agent to
-check a branch's commits before opening a PR.
+write a good PR title instead. CI rejects non-conventional PR titles
+(`node scripts/check-pr-title.mjs "<title>"` locally). Ask the `release` agent to check a title
+before opening a PR.
 
 ## Workflow for agents
 
 1. Pick a task from `docs/ROADMAP.md` or a GitHub issue. Read the relevant doc section.
 2. Branch from `main`: `feat/<area>-<short-name>`.
 3. Implement with tests. Run `pnpm check`. For UI, run the app and check both `/he` and `/en`.
-4. Open a PR with the template. Link the roadmap item. Ask for `/code-review`.
+4. Open a PR with the template and a conventional title (it is the changelog line). Link the
+   roadmap item. Ask for `/code-review`. Merge with squash.
 5. Update docs in the same PR when behaviour or schema changes.
 
 ## Do not
