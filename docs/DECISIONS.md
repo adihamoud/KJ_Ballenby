@@ -266,13 +266,17 @@ the repo; the internal `packages/*` are private and not versioned separately.
 
 Semver while below 1.0: `feat` bumps minor, `fix`/`perf`/`refactor`/`revert` bump patch, breaking
 changes bump minor. `docs`, `style`, `test`, `chore`, `build`, `ci` stay out of the changelog.
-CI rejects non-conventional commit subjects on PRs (`scripts/check-commits.mjs`).
+PRs are **squash-merged only**, with the PR title as the commit subject and a blank body, so one PR
+is one changelog line. CI rejects non-conventional PR titles (`.github/workflows/pr-title.yml`,
+`scripts/check-pr-title.mjs`). Merge commits are disabled in the repo settings: GitHub copies the
+PR title into the merge commit, and release-please counted it as a second change (0.2.0 listed
+PR #14 twice); no merge-commit setting avoids that.
 
 `next.config.ts` inlines the web app's version, the short commit (Vercel / GitHub / git) and a
 channel (`preview` on Vercel previews, `dev` locally) as `NEXT_PUBLIC_APP_*`. The root layout
 renders them in a small footer on every page (`VersionFooter`), hidden in print.
 
-The `release` agent (`.claude/agents/release.md`) checks commit subjects before PRs, reviews the
+The `release` agent (`.claude/agents/release.md`) checks PR titles before PRs open, reviews the
 release PR and fixes notes; it never bumps versions or tags by hand.
 
 ### Consequences
@@ -283,7 +287,7 @@ release PR and fixes notes; it never bumps versions or tags by hand.
 - Negative: the release PR opened with `GITHUB_TOKEN` does not trigger CI. Set a
   `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT) to get checks on it; the workflow uses it when
   present. The repo setting "Allow GitHub Actions to create and approve pull requests" must be on.
-- Negative: changelog quality is only as good as commit subjects; the commit check enforces the
+- Negative: changelog quality is only as good as PR titles; the title check enforces the
   shape, the release agent the wording.
 - Negative: `CHANGELOG.md` and the manifest are excluded from Prettier, since release-please
   writes its own format.
