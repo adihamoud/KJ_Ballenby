@@ -33,8 +33,8 @@ Last checked against the code on 2026-10-25.
 | `kj.a11y` (localStorage)                          | accessibility menu (`lib/a11y/preferences.ts`) | Accessibility settings the visitor chose (ADR-013)                 | text size, high contrast, stop animations, underline links           | Until reset in the menu or site data is cleared     | Never sent to the server; read by an inline script before paint                   | essential | ok     |
 | Service worker cache                              | none today                                     | The PWA ships a web manifest only; no service worker is registered | -                                                                    | -                                                   | -                                                                                 | -         | ok     |
 
-No `localStorage`, `sessionStorage` or IndexedDB keys are used today (checked with a grep on
-2026-10-25). Any new key is a row here.
+Apart from `kj.a11y` above, no `localStorage`, `sessionStorage` or IndexedDB keys are used
+(checked with a grep on 2026-10-25). Any new key is a row here.
 
 ## 3. Third parties
 

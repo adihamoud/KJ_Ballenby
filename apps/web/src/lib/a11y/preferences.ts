@@ -56,6 +56,21 @@ export function preferenceAttributes(p: A11yPreferences): Record<string, string>
   return attrs;
 }
 
+/**
+ * The preferences currently applied to a page, read back from its `<html>` attributes. These are
+ * the source of truth while the page is open: the boot script sets them from storage, and the
+ * menu sets them even when storage is blocked and the choice cannot be saved.
+ */
+export function preferencesFromAttributes(get: (name: string) => string | null): A11yPreferences {
+  const text = get("data-a11y-text");
+  return {
+    textSize: TEXT_SIZES.includes(text as TextSize) ? (text as TextSize) : "default",
+    highContrast: get("data-a11y-contrast") === "high",
+    reduceMotion: get("data-a11y-motion") === "reduce",
+    underlineLinks: get("data-a11y-links") === "underline",
+  };
+}
+
 export const PREFERENCE_ATTRIBUTE_NAMES = [
   "data-a11y-text",
   "data-a11y-contrast",

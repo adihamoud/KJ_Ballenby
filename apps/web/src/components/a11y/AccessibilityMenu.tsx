@@ -10,17 +10,15 @@ import {
   DEFAULT_PREFERENCES,
   PREFERENCE_ATTRIBUTE_NAMES,
   TEXT_SIZES,
-  parsePreferences,
   preferenceAttributes,
+  preferencesFromAttributes,
 } from "@/lib/a11y/preferences";
 import type { A11yPreferences } from "@/lib/a11y/preferences";
 
-function readStored(): A11yPreferences {
-  try {
-    return parsePreferences(window.localStorage.getItem(A11Y_STORAGE_KEY));
-  } catch {
-    return DEFAULT_PREFERENCES;
-  }
+/** What the page shows right now; also correct when storage is blocked and nothing was saved. */
+function readApplied(): A11yPreferences {
+  const root = document.documentElement;
+  return preferencesFromAttributes((name) => root.getAttribute(name));
 }
 
 function apply(prefs: A11yPreferences) {
@@ -56,7 +54,7 @@ export function AccessibilityMenu() {
       <button
         ref={buttonRef}
         type="button"
-        className="btn btn-ghost btn-sm text-muted"
+        className="btn btn-ghost btn-sm text-muted min-h-11"
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
@@ -85,7 +83,7 @@ function AccessibilitySheet({
   useModalDialog(dialogRef, onClose, { returnFocus: opener });
 
   useEffect(() => {
-    setPrefs(readStored());
+    setPrefs(readApplied());
   }, []);
 
   const update = (next: Partial<A11yPreferences>) => {
@@ -185,7 +183,7 @@ function AccessibilitySheet({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary btn-sm min-h-11"
             onClick={() => update(DEFAULT_PREFERENCES)}
           >
             {t("reset")}

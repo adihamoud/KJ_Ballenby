@@ -740,7 +740,7 @@
       "never": "We don't sell data, show ads, build a profile of you or track you on other sites."
     },
     "cookies": {
-      "title": "Cookies",
+      "title": "Cookies and storage",
       "intro": "We only use cookies the app can't work without. No analytics, advertising or tracking cookies, which is why there is no consent banner.",
       "session": "<b>Sign-in</b> (sb-…-auth-token): keeps you signed in on this phone, guests included. Lasts up to 400 days or until you sign out.",
       "table": "<b>Your table</b> (kj_guest): the table and venue you joined and the name you picked. Deleted after 12 hours or when you leave the table.",

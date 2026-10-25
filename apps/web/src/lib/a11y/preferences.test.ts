@@ -4,6 +4,7 @@ import {
   PREFERENCES_BOOT_SCRIPT,
   parsePreferences,
   preferenceAttributes,
+  preferencesFromAttributes,
 } from "./preferences";
 
 /** Run the inline boot script against a fake document and storage; return the attributes set. */
@@ -65,5 +66,15 @@ describe("accessibility preferences", () => {
 
   it.each(SAMPLES)("the boot script agrees with the React code for %j", (stored) => {
     expect(boot(stored)).toEqual(preferenceAttributes(parsePreferences(stored)));
+  });
+
+  it("reads the applied preferences back from the <html> attributes", () => {
+    for (const raw of SAMPLES) {
+      const prefs = parsePreferences(raw);
+      const attrs = preferenceAttributes(prefs);
+      expect(preferencesFromAttributes((name) => attrs[name] ?? null)).toEqual(prefs);
+    }
+    expect(preferencesFromAttributes(() => null)).toEqual(DEFAULT_PREFERENCES);
+    expect(preferencesFromAttributes(() => "bogus").textSize).toBe("default");
   });
 });
