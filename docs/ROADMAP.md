@@ -69,6 +69,7 @@ Deliverables:
 - [ ] Basic stats per night and per venue: songs sung, unique singers, top songs, average wait, rejections by reason
 - [ ] SMS OTP go-live: Twilio production credentials, +972 formatting, rate limits, abuse monitoring
 - [ ] Accessibility pass (focus, contrast, screen reader labels) and RTL audit on both locales
+      (automated WCAG 2.2 AA gate in CI since ADR-013; the manual pass in docs/ACCESSIBILITY.md is open)
 - [ ] Data export/delete per venue (privacy requests)
 
 Done when:

@@ -23,7 +23,10 @@ Checklist:
    (`ml-`, `pl-`, `text-left`); phone/number fields without `dir="ltr"`.
 5. **Mobile**: tap targets under 44px, horizontal overflow at 360px, missing loading/empty/error
    states.
-6. **Tests**: new behaviour without a unit or e2e test; tests that assert implementation details.
-7. **Docs**: schema or rule changes without `docs/` updates; architecture changes without an ADR.
+6. **Accessibility**: run the `a11y-audit` agent for the mechanical pass; look yourself for focus
+   lost after an action, status changes nobody announces, and new pages missing from
+   `src/lib/a11y/routes.ts` (ADR-013, `docs/ACCESSIBILITY.md`).
+7. **Tests**: new behaviour without a unit or e2e test; tests that assert implementation details.
+8. **Docs**: schema or rule changes without `docs/` updates; architecture changes without an ADR.
 
 Run `pnpm check` and report its result. Do not fix things yourself; report them.

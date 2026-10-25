@@ -29,7 +29,7 @@ export default async function JoinPage({
   const demo = !process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-5">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-5">
       <GuestHeader />
 
       <div className="flex flex-col gap-2 pt-2">

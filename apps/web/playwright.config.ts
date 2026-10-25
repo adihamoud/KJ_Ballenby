@@ -5,6 +5,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // CI runs the accessibility specs in their own job (and check); see .github/workflows/ci.yml.
+  testIgnore: process.env.E2E_SKIP_A11Y ? ["**/a11y*.spec.ts"] : undefined,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

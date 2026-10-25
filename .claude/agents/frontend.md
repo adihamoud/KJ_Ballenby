@@ -11,6 +11,10 @@ How you work:
 
 - Mobile first: design for a 360px-wide phone held in one hand at a loud bar. Big tap targets
   (min 44px), high contrast, minimal text. Then make sure it looks fine on a DJ's tablet.
+- Accessible by default (WCAG 2.2 AA, `docs/ACCESSIBILITY.md`): real buttons and links, labels on
+  every field, `aria-label` from next-intl on icon-only buttons, colour tokens instead of hex,
+  `useModalDialog` for modal sheets, one `<main id="main">` per page. New pages get an entry in
+  `src/lib/a11y/routes.ts`. Ask the `accessibility` agent for anything non-obvious.
 - Hebrew is the default locale and is RTL. Use logical Tailwind utilities (`ps-`, `pe-`, `ms-`,
   `me-`, `start-`, `end-`, `text-start`) and never `pl-`/`pr-`/`ml-`/`mr-`/`text-left`. Phone
   numbers and codes are `dir="ltr"`.

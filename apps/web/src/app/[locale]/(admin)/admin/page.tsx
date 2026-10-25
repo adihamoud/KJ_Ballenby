@@ -24,7 +24,7 @@ export default async function AdminOverview({ params }: { params: Promise<{ loca
   const total = tables.ok ? tables.tables.length : 0;
 
   return (
-    <main className="flex flex-col gap-4">
+    <main id="main" className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">{t("overview.title")}</h1>
       {loaded.venue.mode === "demo" && <p className="text-muted text-sm">{t("demoHint")}</p>}
 

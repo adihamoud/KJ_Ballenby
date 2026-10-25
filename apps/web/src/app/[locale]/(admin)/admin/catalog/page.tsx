@@ -40,7 +40,7 @@ export default async function AdminCatalog({ params }: { params: Promise<{ local
   ]);
 
   return (
-    <main className="flex flex-col gap-4">
+    <main id="main" className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">{t("catalog.title")}</h1>
       <p className="text-muted text-sm">{t("catalog.hint")}</p>
       {loaded.venue.mode === "demo" && (

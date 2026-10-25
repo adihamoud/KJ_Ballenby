@@ -9,6 +9,7 @@
 - [ ] `pnpm check` is green
 - [ ] Checked in `/he` (RTL) and `/en`
 - [ ] Checked on a phone-sized viewport
+- [ ] UI changes: keyboard-walked, `a11y-audit` agent run, new pages added to `src/lib/a11y/routes.ts`
 
 ## Checklist
 

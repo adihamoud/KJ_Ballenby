@@ -203,3 +203,14 @@ export function PhoneIcon(props: IconProps) {
     </Svg>
   );
 }
+
+/** The international symbol of access (a figure with open arms), for the accessibility menu. */
+export function AccessibilityIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="7" r="1.25" fill="currentColor" />
+      <path d="M7.5 10.25 12 11l4.5-.75M12 11v3.5m0 0-2.5 4m2.5-4 2.5 4" />
+    </Svg>
+  );
+}

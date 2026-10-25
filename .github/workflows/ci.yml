@@ -55,10 +55,48 @@ jobs:
       - run: pnpm --filter @kj/web test:e2e
         env:
           CI: true
+          E2E_SKIP_A11Y: 1
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
+  accessibility:
+    name: Accessibility (axe, keyboard, reflow)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Check the lines this PR adds (zoom, tabindex, focus outline, tiny text)
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-a11y-diff.mjs origin/${{ github.base_ref }}
+      - run: node --test "scripts/*.test.mjs"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @kj/web build
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm --filter @kj/web exec playwright install --with-deps chromium webkit
+      - name: axe on every page (he + en), keyboard paths, reflow at 320px
+        run: pnpm --filter @kj/web test:a11y
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: a11y-report
           path: apps/web/playwright-report
           retention-days: 7
 

@@ -56,7 +56,7 @@ export default async function GuestHomePage({ params }: { params: Promise<{ loca
   const noIdentity = !night.ok && night.reason === "noIdentity";
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 py-5">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 py-5">
       <GuestHeader brandLink={false} />
 
       <section className="card relative overflow-hidden p-5">

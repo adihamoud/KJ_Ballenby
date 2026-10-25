@@ -17,6 +17,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "a11y:diff": "node scripts/check-a11y-diff.mjs",
+    "test:scripts": "node --test \"scripts/*.test.mjs\"",
     "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
     "db:reset": "supabase db reset",
     "db:push": "supabase db push"

@@ -326,3 +326,56 @@ release PR and fixes notes; it never bumps versions or tags by hand.
   shape, the release agent the wording.
 - Negative: `CHANGELOG.md` and the manifest are excluded from Prettier, since release-please
   writes its own format.
+
+## ADR-013: WCAG 2.2 AA, enforced in CI
+
+Date: 2026-10-25
+
+### Context
+
+Guests use the app on a phone in a dark, loud bar; some are blind, low-vision or cannot use a
+touch screen precisely, and DJs run the console from a keyboard. Israeli law (Equal Rights for
+Persons with Disabilities regulations, 2013, regulation 35) requires public-facing sites to meet
+IS 5568 (WCAG 2.0 AA) and to publish an accessibility statement. The PRD listed "accessibility
+basics" but nothing checked them: the first axe run found white text on the brand pink at 3.1:1
+on every primary button, a 404 page without `lang`, duplicate landmarks and sideways scrolling on
+the DJ console at 320 px.
+
+### Decision
+
+Target **WCAG 2.2 AA** (a superset of IS 5568) on every page in both locales, plus project rules
+(44 px targets, 12 px minimum text). `docs/ACCESSIBILITY.md` is the standard. Enforce it with
+layers that each catch what the others miss:
+
+- ESLint `jsx-a11y` strict on all components (static markup).
+- Unit tests: every `page.tsx` must have an axe scan entry (`src/lib/a11y/routes.ts`); colour
+  token pairs in `globals.css` must meet contrast.
+- `scripts/check-a11y-diff.mjs` on the lines a PR adds (zoom blocking, positive tabindex, removed
+  focus outlines; warnings for tiny text, raw colours, modal dialogs without the focus hook).
+- Playwright: axe-core on every page in `/he` and `/en`, in Chromium and WebKit, plus keyboard
+  (skip link, dialog focus trap/return) and reflow at 320 CSS px. Its own CI job, "Accessibility".
+
+Shared building blocks live in `src/lib/a11y` and `src/components/a11y` (skip link,
+`useModalDialog`). Bright brand colours stay for text and accents on dark; new `brand-fill` and
+`brand-2-fill` tokens sit under white text.
+
+An `accessibility` agent owns the standard, the checks and the known-gaps list; an `a11y-audit`
+agent is the fast gate on every PR that touches `apps/web`.
+
+No third-party accessibility overlay: overlays interfere with screen readers and would be a
+third-party request from guest pages. Instead the app has its own accessibility menu in every
+footer (text size, high contrast, stop animations, underline links), stored in `localStorage`
+only, and the accessibility statement at `/[locale]/accessibility` with the contact taken from the
+deployment's environment.
+
+### Consequences
+
+- Positive: a new page cannot ship without an axe scan, and a token change that breaks contrast
+  fails before any page renders.
+- Positive: fixes are visible in the product (deeper button fill, skip link, focus-trapped request
+  sheet, localized 404).
+- Negative: a second build in CI (about 3 minutes) for the separate Accessibility job, so it can
+  be a required check on its own.
+- Negative: automated checks find a minority of real problems; the manual checklist in
+  `docs/ACCESSIBILITY.md` (VoiceOver in Hebrew, keyboard-only DJ console, zoom) still has to be
+  walked before releases.

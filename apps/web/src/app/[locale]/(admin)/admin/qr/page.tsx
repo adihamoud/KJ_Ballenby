@@ -26,7 +26,7 @@ export default async function AdminQrSheet({ params }: { params: Promise<{ local
   const joinUrl = `${origin}/${locale}/join`;
 
   return (
-    <main className="flex flex-col gap-4">
+    <main id="main" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <PrintButton label={t("print")} />

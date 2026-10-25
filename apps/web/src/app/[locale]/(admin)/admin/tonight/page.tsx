@@ -22,9 +22,9 @@ export default async function AdminTonightPage({
   if (!loaded.ok) {
     const t = await getTranslations("admin");
     return (
-      <main className="card flex flex-col gap-2 p-5">
+      <main id="main" className="card flex flex-col gap-2 p-5">
         <p className="text-muted">{t("unavailable.body")}</p>
-        <a href="" className="btn btn-secondary self-start">
+        <a href="?" className="btn btn-secondary self-start">
           {t("unavailable.retry")}
         </a>
       </main>
