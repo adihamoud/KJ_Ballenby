@@ -4,7 +4,8 @@
     "tagline": "Your karaoke, in a fair queue",
     "loading": "Loading…",
     "back": "Back",
-    "language": "Language"
+    "language": "Language",
+    "version": "Version"
   },
   "landing": {
     "title": "Sing in turn, no fighting over the mic",

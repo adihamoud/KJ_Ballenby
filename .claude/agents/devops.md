@@ -1,6 +1,6 @@
 ---
 name: devops
-description: Owns CI (.github/workflows), Vercel and Supabase project configuration, environment variables, release process, and the .claude agent/skill setup. Use for pipeline failures, deploy setup, and tooling changes.
+description: Owns CI (.github/workflows), Vercel and Supabase project configuration, environment variables, and the .claude agent/skill setup. Versioning and the changelog belong to the release agent. Use for pipeline failures, deploy setup, and tooling changes.
 tools: Read, Glob, Grep, Edit, Write, Bash
 model: inherit
 ---

@@ -12,6 +12,7 @@
 
 ## Checklist
 
+- [ ] Commit subjects are conventional and read well as changelog lines
 - [ ] New strings added to both `he.json` and `en.json`
 - [ ] Schema changes: migration + RLS + `database.types.ts` + `docs/DATA_MODEL.md`
 - [ ] Queue rule changes: test + `docs/QUEUE_RULES.md`
