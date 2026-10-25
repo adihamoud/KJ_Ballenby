@@ -84,6 +84,8 @@ function InteractiveTableChip({
   const [place, setPlace] = useState<React.CSSProperties>({});
   const [seating, setSeating] = useState<{ value: TableSeating | null; at: number } | null>(null);
   const [loadingSeating, setLoadingSeating] = useState(false);
+  /** Where the chip was when the card opened; a scroll that leaves it there is ignored. */
+  const anchor = useRef<{ top: number; left: number } | null>(null);
 
   const nightId = info.snapshot.night?.id ?? null;
   const live = info.snapshot.mode === "live";
@@ -106,6 +108,7 @@ function InteractiveTableChip({
     const preferredLeft = rtl ? rect.right - width : rect.left;
     const left = Math.min(Math.max(preferredLeft, 8), vw - width - 8);
     const below = vh - rect.bottom > 280 || rect.top < 280;
+    anchor.current = { top: rect.top, left: rect.left };
     setPlace(
       below
         ? { position: "fixed", top: rect.bottom + 6, left, width }
@@ -148,16 +151,27 @@ function InteractiveTableChip({
       const target = e.target as Node;
       if (!chipRef.current?.contains(target) && !cardRef.current?.contains(target)) hide();
     };
-    const onScroll = () => hide();
+    // Scroll events are delivered a frame late: the scroll that brought the chip into view
+    // before a tap arrives after the tap opened the card, so only a scroll that actually moved
+    // the chip closes it (the card is placed for where the chip was).
+    const onScroll = () => {
+      const rect = chipRef.current?.getBoundingClientRect();
+      const was = anchor.current;
+      if (rect && was && Math.abs(rect.top - was.top) < 1 && Math.abs(rect.left - was.left) < 1) {
+        return;
+      }
+      hide();
+    };
+    const onResize = () => hide();
     window.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
     window.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointer);
       window.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, [open, hide]);
 
