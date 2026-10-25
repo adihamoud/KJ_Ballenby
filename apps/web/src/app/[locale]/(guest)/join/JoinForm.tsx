@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { joinTableAction } from "@/lib/guest/actions";
 import { initialJoinState } from "@/lib/guest/join-state";
 import { GUEST_NAME_MAX } from "@/lib/guest/join-code";
@@ -23,6 +24,7 @@ interface JoinFormProps {
  */
 export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormProps) {
   const t = useTranslations("join");
+  const tPrivacy = useTranslations("privacy");
   const [state, formAction, pending] = useActionState(joinTableAction, initialJoinState);
   const codeDefault = state.code ?? code;
   const nameDefault = state.name ?? name;
@@ -58,21 +60,39 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
         </label>
       )}
 
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-semibold">{t("nameLabel")}</span>
-        <input
-          key={`name:${fieldKey}`}
-          className="input"
-          name="name"
-          type="text"
-          autoComplete="nickname"
-          maxLength={GUEST_NAME_MAX}
-          placeholder={t("namePlaceholder")}
-          defaultValue={nameDefault}
-          aria-invalid={nameInvalid || undefined}
-          required
-        />
-      </label>
+      {/* The privacy notice sits outside the label: a link inside a label would join the
+          input's accessible name and steal taps meant for the field. */}
+      <div className="flex flex-col gap-2">
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">{t("nameLabel")}</span>
+          <input
+            key={`name:${fieldKey}`}
+            className="input"
+            name="name"
+            type="text"
+            autoComplete="nickname"
+            maxLength={GUEST_NAME_MAX}
+            placeholder={t("namePlaceholder")}
+            defaultValue={nameDefault}
+            aria-invalid={nameInvalid || undefined}
+            aria-describedby="join-name-privacy"
+            required
+          />
+        </label>
+        <span id="join-name-privacy" className="text-faint text-xs">
+          {tPrivacy.rich("links.join", {
+            link: (chunks) => (
+              <Link
+                href="/privacy"
+                className="text-muted underline underline-offset-4"
+                data-testid="join-privacy"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+        </span>
+      </div>
 
       {state.error && (
         <p

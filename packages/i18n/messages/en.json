@@ -716,5 +716,75 @@
     "title": "Page not found",
     "body": "That link is broken or the page has moved.",
     "home": "Go home"
+  },
+  "privacy": {
+    "metaTitle": "Privacy",
+    "title": "Privacy",
+    "intro": "You came to sing, not to hand over data. So we collect only what it takes to run the queue, keep it briefly and use it for nothing else.",
+    "updated": "Last updated: 25 October 2026",
+    "who": {
+      "title": "Who we are",
+      "body": "KJ Ballenby is an app for running karaoke queues in bars and venues. The venue you are at uses it to run the night, and we operate it.",
+      "operator": "Operated by: TODO company or business name",
+      "contact": "Privacy questions, or a request to see, correct or delete your data:",
+      "contactEmail": "privacy@TODO.invalid"
+    },
+    "collect": {
+      "title": "What we collect and why",
+      "intro": "No law requires you to give us anything. Without a name you can't join the queue, and without an account we just won't remember you next time.",
+      "name": "<b>Your table name.</b> The name you picked when joining, so the DJ can call you up. The DJ and staff see it, and so do other guests at the venue when it's your turn. A nickname is fine.",
+      "guest": "<b>Guest account.</b> Joining a table creates an anonymous account for you, with no email or phone, so your requests stay yours and only you can cancel them.",
+      "account": "<b>Sign-in, only if you choose it.</b> With Google or Microsoft we get your name, email and profile picture from them. With email and password we keep the email; the password is stored only as an unreadable hash. With phone we keep the number to send you a sign-in code. Other guests and staff never see your phone or email.",
+      "requests": "<b>Song requests.</b> Which song you asked for and when, the singer names you added and a note to the DJ if you wrote one. The DJ and staff see all of it, and singer names also show in the queue. If you add friends, a first name or nickname is enough.",
+      "staff": "<b>Venue staff.</b> Sign-in details, your role at the venue and what you did during the night (for example, who approved a request).",
+      "never": "We don't sell data, show ads, build a profile of you or track you on other sites."
+    },
+    "cookies": {
+      "title": "Cookies",
+      "intro": "We only use cookies the app can't work without. No analytics, advertising or tracking cookies, which is why there is no consent banner.",
+      "session": "<b>Sign-in</b> (sb-…-auth-token): keeps you signed in on this phone, guests included. Lasts up to 400 days or until you sign out.",
+      "table": "<b>Your table</b> (kj_guest): the table and venue you joined and the name you picked. Deleted after 12 hours or when you leave the table.",
+      "locale": "<b>Language</b> (NEXT_LOCALE): Hebrew or English, if you switched. Deleted when you close the browser.",
+      "a11y": "<b>Accessibility settings</b> (kj.a11y, stored in the browser, not a cookie): text size, contrast, animations and link underlines, only if you changed them in the accessibility menu. Never sent to us. Deleted when you reset them or clear the site's data.",
+      "firstParty": "While you use the app, your phone talks only to our server and to Supabase, our database provider. If you choose to sign in with Google or Microsoft, you visit their page for that step. Song pictures also come through our server, so Google doesn't see who you are."
+    },
+    "sharing": {
+      "title": "Who else sees your data",
+      "intro": "We don't sell data or pass it on for marketing. These are the parties that see part of it, each only what it needs:",
+      "venue": "<b>The venue.</b> The DJ and staff see the names, requests and notes for their night. They don't see phone numbers or emails.",
+      "supabase": "<b>Supabase.</b> Database and sign-in. Holds everything above, plus IP address and browser type in system logs.",
+      "vercel": "<b>Vercel.</b> Hosts the site. Sees IP address, browser type and which pages loaded, in system logs.",
+      "login": "<b>Google and Microsoft.</b> Only if you chose to sign in with them.",
+      "twilio": "<b>Twilio.</b> Sends the SMS sign-in code, only if you sign in with a phone. Receives the number and the code.",
+      "youtube": "<b>YouTube.</b> Videos play only on the DJ's screens, never on your phone, so YouTube gets nothing from your phone. On the DJ's screens YouTube sees the device's IP address and sets its own cookies.",
+      "abroad": "These providers' servers may be outside Israel."
+    },
+    "retention": {
+      "title": "How long we keep it",
+      "intro": "We aim to keep data as briefly as possible. Some automatic deletion is still being built; until it runs, we delete by hand on request.",
+      "table": "<b>Table cookie:</b> 12 hours.",
+      "guest": "<b>Guest account:</b> our target is deletion 30 days after your last activity.",
+      "requests": "<b>Singer names and notes:</b> our target is deletion 90 days after the night. Only which song was sung and when stays, for the venue's statistics.",
+      "account": "<b>Regular account:</b> until you ask us to delete it.",
+      "staff": "<b>Staff:</b> for as long as you are on the venue's team.",
+      "logs": "<b>System logs</b> at Supabase and Vercel: per the providers' settings."
+    },
+    "rights": {
+      "title": "Your rights",
+      "body": "You can ask to see the data we hold about you, correct it or delete it. For now, email the address above and we will answer within 30 days. Tell us the venue, the night and the name you used. Soon you will be able to do this yourself in the app.",
+      "leave": "Leaving your table deletes the table cookie from your phone right away.",
+      "complaint": "If we can't sort it out, you can contact the Israeli Privacy Protection Authority."
+    },
+    "changes": {
+      "title": "Changes",
+      "body": "If we change what we collect or who sees it, we will update this page and the date above."
+    },
+    "links": {
+      "footer": "Privacy",
+      "join": "The DJ and guests at the venue will see this name. <link>How we use your data</link>",
+      "auth": "We keep only what we need to recognise you. <link>Privacy</link>",
+      "request": "Singer names show in the queue. A first name or nickname is enough.",
+      "backHome": "Back to home"
+    }
   }
 }

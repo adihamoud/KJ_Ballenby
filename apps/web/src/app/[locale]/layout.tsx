@@ -64,6 +64,8 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <SkipLink />
           {children}
+          {/* Inside the provider: its privacy and accessibility links are next-intl client
+              components. */}
           <VersionFooter />
         </NextIntlClientProvider>
       </body>

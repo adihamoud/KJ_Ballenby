@@ -114,7 +114,7 @@ that opens a modal sheet with:
 
 Settings apply at once as `data-a11y-*` attributes on `<html>` and are stored in this browser
 only, in `localStorage` under `kj.a11y` (`src/lib/a11y/preferences.ts`). They are strictly
-functional, never sent to the server, and must be listed in the storage register of
+functional, never sent to the server, and listed in the storage register of
 `docs/PRIVACY.md` (ADR-012). A small inline script in the root layout applies them before first
 paint so the page does not jump. The OS's own text size, zoom and reduced-motion settings keep
 working without the menu. No third-party overlay (ADR-013).

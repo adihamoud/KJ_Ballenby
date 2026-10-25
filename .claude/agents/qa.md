@@ -27,6 +27,9 @@ Checklist:
    lost after an action, status changes nobody announces, and new pages missing from
    `src/lib/a11y/routes.ts` (ADR-013, `docs/ACCESSIBILITY.md`).
 7. **Tests**: new behaviour without a unit or e2e test; tests that assert implementation details.
-8. **Docs**: schema or rule changes without `docs/` updates; architecture changes without an ADR.
+8. **Privacy**: new cookies, storage keys, third-party hosts or personal-data fields missing from
+   `docs/PRIVACY.md`; personal data in logs, errors or URLs (ADR-012). Run the `privacy-audit`
+   agent for the mechanical pass.
+9. **Docs**: schema or rule changes without `docs/` updates; architecture changes without an ADR.
 
 Run `pnpm check` and report its result. Do not fix things yourself; report them.

@@ -11,6 +11,7 @@ KJ_Ballenby is a multi-venue SaaS for karaoke bars: guests request songs from th
 | [ROADMAP.md](./ROADMAP.md)               | The five delivery phases with goals, deliverables, and "done when" criteria.                                                  |
 | [SETUP_ACCOUNTS.md](./SETUP_ACCOUNTS.md) | Step-by-step owner guide for Supabase, Google OAuth, Microsoft (Azure) OAuth, Twilio phone OTP, and Vercel.                   |
 | [ACCESSIBILITY.md](./ACCESSIBILITY.md)   | WCAG 2.2 AA standard, automated checks, component patterns, manual checklist, known gaps.                                     |
+| [PRIVACY.md](./PRIVACY.md)               | Cookie and storage register, third parties, personal data inventory, retention, rights flows, privacy backlog and agents.     |
 | [DECISIONS.md](./DECISIONS.md)           | Architecture Decision Records (ADR-001 onwards).                                                                              |
 
 ## Conventions

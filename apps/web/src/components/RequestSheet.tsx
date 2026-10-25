@@ -178,6 +178,7 @@ export function RequestSheet({
                 {t("guest.request.addSinger")}
               </button>
             )}
+            <p className="text-faint text-xs">{t("privacy.links.request")}</p>
           </fieldset>
 
           <label className="flex flex-col gap-2">

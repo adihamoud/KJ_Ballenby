@@ -53,6 +53,7 @@ export const A11Y_SCANS: readonly A11yScan[] = [
   { name: "admin QR sheet", route: "/admin/qr", path: "/admin/qr" },
   { name: "admin settings", route: "/admin/settings", path: "/admin/settings" },
   { name: "accessibility statement", route: "/accessibility", path: "/accessibility" },
+  { name: "privacy notice", route: "/privacy", path: "/privacy" },
   { name: "accessibility menu", route: "/", path: "", open: "a11yMenu" },
   {
     name: "landing, high contrast and larger text",

@@ -25,7 +25,7 @@ export async function AuthScreen({
   // linkIdentity, docs/ARCHITECTURE.md section 5), guests go back to their table.
   if (user?.is_anonymous && mode === "signup") redirect({ href: "/guest", locale });
 
-  const t = await getTranslations("auth");
+  const [t, tPrivacy] = await Promise.all([getTranslations("auth"), getTranslations("privacy")]);
   const other = mode === "signin" ? "/signup" : "/login";
 
   return (
@@ -43,6 +43,16 @@ export async function AuthScreen({
         configured={Boolean(readSupabaseEnv())}
         initialError={error === "auth" ? t("errors.auth") : undefined}
       />
+
+      <p className="text-faint text-center text-xs" data-testid="auth-privacy">
+        {tPrivacy.rich("links.auth", {
+          link: (chunks) => (
+            <Link href="/privacy" className="text-muted underline underline-offset-4">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
 
       <p className="text-muted text-center text-sm">
         {t(`${mode}.switchPrompt`)}
