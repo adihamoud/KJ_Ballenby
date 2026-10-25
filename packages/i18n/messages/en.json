@@ -10,7 +10,6 @@
   "landing": {
     "title": "Sing in turn, no fighting over the mic",
     "subtitle": "Scan the QR code on your table, pick a song, and see exactly when you're up.",
-    "noAccount": "No download, no sign-up.",
     "steps": {
       "scan": {
         "title": "Scan",
@@ -25,17 +24,58 @@
         "body": "Watch your place in line and know when it's your turn."
       }
     },
-    "guestCta": "Join as guest",
-    "cta": "Staff sign in",
-    "forVenues": "Run a venue? ",
-    "forVenuesLink": "Venue admin"
+    "choose": "How would you like to continue?",
+    "entries": {
+      "newUser": {
+        "title": "I'm new here",
+        "body": "Create an account to keep your songs between nights."
+      },
+      "existingUser": {
+        "title": "I have an account",
+        "body": "Sign in with email, phone, Google or Microsoft."
+      },
+      "guest": {
+        "title": "Join as guest",
+        "body": "No download, no sign-up."
+      }
+    },
+    "forVenues": "Venue owner or staff? ",
+    "forVenuesLink": "Manage your venue"
   },
-  "login": {
-    "title": "Sign in",
-    "subtitle": "Choose how to continue",
+  "auth": {
+    "signin": {
+      "title": "Welcome back",
+      "subtitle": "Sign in the way you signed up.",
+      "switchPrompt": "New here? ",
+      "switchLink": "Create an account",
+      "submit": "Sign in"
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitle": "Pick one way to sign up.",
+      "switchPrompt": "Already have an account? ",
+      "switchLink": "Sign in",
+      "submit": "Create account"
+    },
     "google": "Continue with Google",
     "microsoft": "Continue with Microsoft",
     "or": "or",
+    "methods": "Sign-in method",
+    "email": "Email",
+    "phone": "Phone",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Dana",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "newPasswordHint": "At least 8 characters.",
+    "forgotPassword": "Forgot password?",
+    "resetSent": "If {email} has an account, we sent it a link to reset the password.",
+    "checkInbox": {
+      "title": "Check your inbox",
+      "body": "We sent a confirmation link to {email}. Open it on this phone to finish signing up.",
+      "back": "Back"
+    },
     "phoneLabel": "Israeli phone number",
     "phonePlaceholder": "050-123-4567",
     "sendCode": "Text me a code",
@@ -46,9 +86,24 @@
     "codeSent": "We sent a code to {phone}",
     "guestHint": "Just here to sing? Guests don't need an account.",
     "guestCta": "Join as guest",
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "You'll use it the next time you sign in with your email.",
+      "submit": "Save password"
+    },
+    "notConfigured": "Sign-in is not set up in this environment yet.",
     "errors": {
       "invalidPhone": "Enter a valid Israeli number, e.g. 050-123-4567",
       "invalidCode": "That code is wrong or has expired",
+      "invalidCredentials": "Wrong email or password",
+      "emailNotConfirmed": "Confirm your email first: open the link we sent you.",
+      "emailFirst": "Type your email above first",
+      "weakPassword": "Choose a password with at least 8 characters",
+      "alreadyRegistered": "That email already has an account. Sign in instead.",
+      "noAccount": "No account uses this number yet. Create one first.",
+      "nameRequired": "Tell us your name",
+      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "auth": "We couldn't finish signing you in. Please try again.",
       "generic": "Something went wrong. Please try again."
     }
   },

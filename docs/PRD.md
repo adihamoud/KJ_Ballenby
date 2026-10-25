@@ -30,9 +30,10 @@ Priority: **P1** = phase 2 core, **P2** = phase 3, **P3** = later.
 
 ### 3.1 Guest
 
-**G1. Sign in (P1).** As a guest I can sign in with Google, Microsoft, or an SMS code sent to my +972 phone.
+**G1. Sign in (P1).** As a guest I can sign in with Google, Microsoft, email and password, or an SMS code sent to my +972 phone.
 
-- Sign-in page offers three options; each completes in under 3 taps after provider consent.
+- The landing page asks first: new user (`/signup`), existing user (`/login`) or guest (`/join`, no account). Sign-up and sign-in offer the same four methods; sign-up also asks for a name for email and phone.
+- Each method completes in under 3 taps after provider consent.
 - Phone input accepts local format (`05X-XXXXXXX`) and normalizes to E.164 `+9725XXXXXXXX`.
 - A `profiles` row exists after first login with `display_name` prefilled from the provider (or asked for after phone login).
 - Session persists across PWA relaunches.

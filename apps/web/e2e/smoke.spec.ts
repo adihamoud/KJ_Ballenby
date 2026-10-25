@@ -47,11 +47,42 @@ test("locale switcher changes language and direction", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
 });
 
-test("login page shows all three sign-in methods", async ({ page }) => {
-  await page.goto("/en/login");
-  await expect(page.getByRole("button", { name: /google/i })).toBeVisible();
-  await expect(page.getByRole("button", { name: /microsoft/i })).toBeVisible();
-  await expect(page.getByLabel(/phone number/i)).toBeVisible();
+test("landing asks new user, existing user or guest, with one venue link", async ({ page }) => {
+  await page.goto("/en");
+  await page.getByRole("link", { name: /i'm new here/i }).click();
+  await expect(page).toHaveURL(/\/en\/signup$/);
+
+  await page.goto("/en");
+  await page.getByRole("link", { name: /i have an account/i }).click();
+  await expect(page).toHaveURL(/\/en\/login$/);
+
+  await page.goto("/en");
+  await expect(page.getByRole("link", { name: /manage your venue/i })).toHaveCount(1);
+  await expect(page.getByRole("link", { name: /staff sign in/i })).toHaveCount(0);
+});
+
+for (const [path, submit] of [
+  ["/en/login", /^sign in$/i],
+  ["/en/signup", /^create account$/i],
+] as const) {
+  test(`${path} offers email, phone, Google and Microsoft`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.getByRole("button", { name: /google/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /microsoft/i })).toBeVisible();
+    await expect(page.getByLabel(/^email$/i)).toBeVisible();
+    await expect(page.getByLabel(/^password$/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: submit })).toBeVisible();
+    await page.getByRole("button", { name: /^phone$/i }).click();
+    await expect(page.getByLabel(/phone number/i)).toBeVisible();
+  });
+}
+
+test("sign-up asks for a name; sign-in does not", async ({ page }) => {
+  await page.goto("/en/signup");
+  await expect(page.getByLabel(/your name/i)).toBeVisible();
+  await page.getByTestId("auth-switch").click();
+  await expect(page).toHaveURL(/\/en\/login$/);
+  await expect(page.getByLabel(/your name/i)).toHaveCount(0);
 });
 
 test("protected app route redirects anonymous users to login", async ({ page }) => {
