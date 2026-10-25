@@ -1,7 +1,7 @@
 {
   "name": "kj-ballenby",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Multi-venue karaoke queue SaaS: guest PWA, DJ dashboard, venue admin",
   "packageManager": "pnpm@10.34.7",
   "engines": {
