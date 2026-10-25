@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import type { DjQueueItem } from "@/lib/dj/types";
 import { formatDuration, youtubeWatchUrl } from "@/lib/youtube";
 import { TableChip } from "./TableInfo";
-import type { PlayerControls } from "./useYouTubePlayer";
+import type { DeckControls } from "./useYouTubePlayer";
 
 interface PlayerPanelProps {
   /** The song on the mic, or the next one cued when nobody is singing. */
@@ -12,8 +12,15 @@ interface PlayerPanelProps {
   isSinging: boolean;
   selectedVideoId: string | null;
   onSelectVideo: (youtubeId: string) => void;
-  player: PlayerControls;
-  containerRef: React.RefObject<HTMLDivElement | null>;
+  /** Who takes the mic after `item`; their video preloads on the standby deck. */
+  deckItem: DjQueueItem | null;
+  deckVideoId: string | null;
+  player: DeckControls;
+  /** One container per deck. Their iframes never move in the DOM (that would reload them). */
+  deckRefs: readonly [
+    React.RefObject<HTMLDivElement | null>,
+    React.RefObject<HTMLDivElement | null>,
+  ];
   onStart: () => void;
   onDone: () => void;
   autoStart: boolean;
@@ -24,8 +31,10 @@ export function PlayerPanel({
   isSinging,
   selectedVideoId,
   onSelectVideo,
+  deckItem,
+  deckVideoId,
   player,
-  containerRef,
+  deckRefs,
   onStart,
   onDone,
   autoStart,
@@ -75,19 +84,69 @@ export function PlayerPanel({
         </div>
       )}
 
-      <div className="bg-surface-2 border-border relative aspect-video w-full overflow-hidden rounded-xl border">
-        {/* The YouTube iframe mounts here once and stays mounted across songs and tabs. */}
-        <div ref={containerRef} className="absolute inset-0 [&>iframe]:size-full" dir="ltr" />
+      {/*
+        Both decks share one grid: the active deck fills the big frame (row 1) and the standby
+        deck sits in the small "On deck" frame (row 2). Swapping decks only swaps their classes.
+      */}
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+        <div className="bg-surface-2 border-border col-span-full row-start-1 aspect-video w-full rounded-xl border" />
+        {deckRefs.map((ref, deck) => {
+          const isActive = deck === player.activeDeck;
+          return (
+            <div
+              key={deck}
+              ref={ref}
+              dir="ltr"
+              data-deck={isActive ? "active" : "standby"}
+              data-deck-index={deck}
+              aria-hidden={isActive ? undefined : true}
+              // Standby is a preview only: keep its iframe out of the Tab order too.
+              inert={!isActive}
+              className={`relative overflow-hidden [&>iframe]:size-full ${
+                isActive
+                  ? "col-span-full row-start-1 aspect-video w-full rounded-xl"
+                  : `border-border pointer-events-none col-start-1 row-start-2 aspect-video w-36 rounded-lg border sm:w-44 ${
+                      deckVideoId ? "" : "invisible"
+                    }`
+              }`}
+            />
+          );
+        })}
         {!hasVideo && (
-          <div className="text-muted absolute inset-0 flex items-center justify-center p-6 text-center text-sm">
+          <div className="text-muted relative z-10 col-span-full row-start-1 flex items-center justify-center p-6 text-center text-sm">
             {item ? (item.videos.length > 0 ? t("noEmbeddable") : t("noVideos")) : t("empty")}
           </div>
         )}
         {player.status === "error" && (
-          <div className="bg-bg/80 text-danger absolute inset-x-0 bottom-0 p-3 text-center text-sm">
-            {t("error")}
+          <div role="alert" className="relative z-10 col-span-full row-start-1 self-end">
+            <p className="bg-bg/80 text-danger p-3 text-center text-sm">{t("error")}</p>
           </div>
         )}
+        <div
+          className="col-start-2 row-start-2 flex min-w-0 flex-col justify-center gap-0.5"
+          data-testid="on-deck"
+        >
+          <p className="text-muted text-xs font-semibold tracking-wide uppercase">{t("onDeck")}</p>
+          {deckItem && (
+            <>
+              <p className="min-w-0 text-sm font-semibold break-words" dir="auto">
+                {deckItem.title}
+                <span className="text-muted font-normal"> · {deckItem.artist}</span>
+              </p>
+              <p className="text-muted min-w-0 text-xs break-words" dir="auto">
+                {deckItem.singers.join(" + ")}
+              </p>
+            </>
+          )}
+          {/* Always mounted so screen readers announce the first change too. */}
+          <p role="status" className={deckItem ? "text-muted text-xs" : "text-muted text-sm"}>
+            {deckItem
+              ? deckVideoId
+                ? t(`deckStatus.${player.deckStatus}`)
+                : t("deckNoVideo")
+              : t("deckEmpty")}
+          </p>
+        </div>
       </div>
 
       {item && item.videos.length > 0 && (

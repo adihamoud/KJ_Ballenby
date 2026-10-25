@@ -25,6 +25,37 @@ test.describe("DJ console (demo night)", () => {
     await expect(page.getByTestId("player-panel")).toContainText("תודה");
   });
 
+  test("the song after the singer is on deck", async ({ page }) => {
+    const onDeck = page.getByTestId("on-deck");
+    await expect(onDeck).toContainText("תודה");
+    await page.getByTestId("now-singing").getByRole("button", { name: "Done, next" }).click();
+    await expect(page.getByTestId("now-singing")).toContainText("תודה");
+    await expect(onDeck).not.toContainText("תודה");
+  });
+
+  test("handing the mic over swaps to the preloaded deck", async ({ page }) => {
+    const panel = page.getByTestId("player-panel");
+    // The YouTube IFrame API loads from the network; without it there is nothing to assert.
+    const loaded = await panel
+      .locator('[data-deck="standby"] iframe')
+      .waitFor({ state: "attached", timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false);
+    test.skip(!loaded, "YouTube IFrame API unreachable from this runner");
+    // Both players are ready once the standby deck starts preloading (or reports it can't).
+    await expect(page.getByTestId("on-deck").locator('[role="status"]')).toHaveText(
+      /Preloading|Preloaded|Couldn't preload/,
+      { timeout: 15_000 },
+    );
+
+    const standby = await panel.locator('[data-deck="standby"]').getAttribute("data-deck-index");
+    await page.getByTestId("now-singing").getByRole("button", { name: "Done, next" }).click();
+    await expect(panel.locator(`[data-deck-index="${standby}"]`)).toHaveAttribute(
+      "data-deck",
+      "active",
+    );
+  });
+
   test("approve moves a request into the queue", async ({ page }) => {
     await page.getByRole("button", { name: "Approve" }).first().click();
     await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(1);
@@ -42,7 +73,7 @@ test.describe("DJ console (demo night)", () => {
   });
 
   test("the player re-attaches after the night is closed and reopened", async ({ page }) => {
-    const iframe = page.getByTestId("player-panel").locator("iframe");
+    const iframe = page.getByTestId("player-panel").locator('[data-deck="active"] iframe');
     // The YouTube IFrame API loads from the network; without it there is nothing to assert.
     const loaded = await iframe
       .waitFor({ state: "attached", timeout: 15_000 })

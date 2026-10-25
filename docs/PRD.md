@@ -107,6 +107,7 @@ Priority: **P1** = phase 2 core, **P2** = phase 3, **P3** = later.
 **H6. Player and mixer (P1).** As a DJ I can play the song's karaoke video and balance music and mic from the same screen, so a venue without VirtualDJ can still run the night.
 
 - The player cues the embeddable YouTube version of the song on the mic (or of the next entry while nobody sings) and never autoplays; the DJ presses play when the singer is ready.
+- A second "On deck" player preloads the song that takes the mic next while the current one plays: it loads muted, buffers its first seconds and pauses at 0:00. Handing the mic over swaps the two players, so the next video is ready at once and still waits for the DJ to press play.
 - Version chips switch between the song's linked videos; non-embeddable ones open on YouTube.
 - Mixer: music volume, tempo and a 3 s fade-out; a browser microphone channel (gain, echo, level meter) through Web Audio; one master mute. The browser only reaches the default output, so the venue's hardware mixer stays in charge of the PA.
 - Queue, player and mixer share one screen on a laptop or 10-inch tablet and become tabs on a phone.

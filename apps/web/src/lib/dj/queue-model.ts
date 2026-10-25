@@ -86,6 +86,15 @@ export function nextUp(snapshot: DjSnapshot, now = snapshot.generatedAt): DjQueu
   return orderedQueue(snapshot, now).find((i) => i.status === "queued") ?? null;
 }
 
+/**
+ * The entry that takes the mic after the player's song: the next queued entry while someone
+ * sings, otherwise the one after the next (the next one is already cued in the player).
+ */
+export function onDeck(snapshot: DjSnapshot, now = snapshot.generatedAt): DjQueueItem | null {
+  const queued = orderedQueue(snapshot, now).filter((i) => i.status === "queued");
+  return (nowSinging(snapshot) ? queued[0] : queued[1]) ?? null;
+}
+
 interface Draft {
   items: DjQueueItem[];
   history: DjHistoryItem[];

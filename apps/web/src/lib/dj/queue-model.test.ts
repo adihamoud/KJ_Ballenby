@@ -7,6 +7,7 @@ import {
   closeNightSnapshot,
   nextUp,
   nowSinging,
+  onDeck,
   orderedQueue,
   pendingItems,
 } from "./queue-model";
@@ -129,6 +130,35 @@ describe("done", () => {
     const expectedNext = nextUp(s)?.title;
     const res = apply(s, { type: "done", entryId: "demo-entry-1", startNext: true });
     expect(nowSinging(res.snapshot)?.title).toBe(expectedNext);
+  });
+});
+
+describe("on deck", () => {
+  it("is the next queued entry while someone sings", () => {
+    const s = snapshot();
+    expect(onDeck(s)?.entryId).toBe(nextUp(s)?.entryId);
+  });
+
+  it("is the entry after the cued one when nobody sings", () => {
+    const res = apply(snapshot(), { type: "done", entryId: "demo-entry-1", startNext: false });
+    expect(titles(res.snapshot).slice(0, 2)).toEqual([
+      nextUp(res.snapshot)?.title,
+      onDeck(res.snapshot)?.title,
+    ]);
+  });
+
+  it("becomes the singer when the mic is handed over", () => {
+    const s = snapshot();
+    const res = apply(s, { type: "done", entryId: "demo-entry-1", startNext: true });
+    expect(nowSinging(res.snapshot)?.entryId).toBe(onDeck(s)?.entryId);
+  });
+
+  it("is null when nothing follows", () => {
+    let s = snapshot();
+    for (let item = nowSinging(s) ?? nextUp(s); item; item = nowSinging(s) ?? nextUp(s)) {
+      s = apply(s, { type: "skip", requestId: item.requestId }).snapshot;
+    }
+    expect(onDeck(s)).toBeNull();
   });
 });
 
