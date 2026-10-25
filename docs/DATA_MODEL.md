@@ -109,20 +109,21 @@ PK `(group_id, user_id)`. No `updated_at`.
 
 Venue catalog. Guests can only pick rows from their venue.
 
-| Column                  | Type                          | Notes                                   |
-| ----------------------- | ----------------------------- | --------------------------------------- |
-| id                      | uuid PK                       |                                         |
-| venue_id                | uuid                          | FK venues                               |
-| title                   | text not null                 |                                         |
-| artist                  | text not null                 |                                         |
-| language                | text null                     | ISO 639-1 (`he`, `en`, ...) or null     |
-| duration_sec            | int null                      |                                         |
-| external_ref            | text null                     | VirtualDJ file path or id               |
-| search                  | tsvector                      | Generated: `to_tsvector('simple', title |     | ' ' |     | artist)` |
-| is_active               | boolean not null default true |                                         |
-| created_at / updated_at | timestamptz                   |                                         |
+| Column                  | Type                          | Notes                                                                                      |
+| ----------------------- | ----------------------------- | ------------------------------------------------------------------------------------------ |
+| id                      | uuid PK                       |                                                                                            |
+| venue_id                | uuid                          | FK venues                                                                                  |
+| title                   | text not null                 |                                                                                            |
+| artist                  | text not null                 |                                                                                            |
+| language                | text null                     | ISO 639-1 (`he`, `en`, ...) or null                                                        |
+| duration_sec            | int null                      |                                                                                            |
+| external_ref            | text null                     | VirtualDJ file path or id                                                                  |
+| search                  | tsvector                      | Generated: `to_tsvector('simple', title                                                    |     | ' ' |     | artist)` |
+| is_active               | boolean not null default true |                                                                                            |
+| last_import_id          | uuid null                     | FK catalog_imports, set null on delete; the import that last created or refreshed the song |
+| created_at / updated_at | timestamptz                   |                                                                                            |
 
-Unique `(venue_id, title, artist)`.
+Unique `(venue_id, title, artist)`. Imports match songs case-insensitively on `lower(title), lower(artist)`.
 
 ### song_videos
 
@@ -190,16 +191,16 @@ No `id`, no `created_at`.
 
 ### catalog_imports
 
-| Column                  | Type                            | Notes                                                 |
-| ----------------------- | ------------------------------- | ----------------------------------------------------- |
-| id                      | uuid PK                         |                                                       |
-| venue_id                | uuid                            | FK venues                                             |
-| uploaded_by             | uuid                            | FK profiles                                           |
-| storage_path            | text not null                   | `catalog-uploads/<venue_id>/<uuid>.<ext>`             |
-| status                  | text not null default 'pending' | check in (`pending`, `processing`, `done`, `failed`)  |
-| stats                   | jsonb not null default '{}'     | `{ inserted, updated, deactivated, skipped, errors }` |
-| error                   | text null                       |                                                       |
-| created_at / updated_at | timestamptz                     |                                                       |
+| Column                  | Type                            | Notes                                                                          |
+| ----------------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| id                      | uuid PK                         |                                                                                |
+| venue_id                | uuid                            | FK venues                                                                      |
+| uploaded_by             | uuid                            | FK profiles                                                                    |
+| storage_path            | text not null                   | `<venue_id>/<uuid>.<ext>` in bucket `catalog-imports`                          |
+| status                  | text not null default 'pending' | check in (`pending`, `processing`, `done`, `failed`)                           |
+| stats                   | jsonb not null default '{}'     | `{ file, format, total, duplicates, skipped, inserted, updated, deactivated }` |
+| error                   | text null                       | Error code when `failed` (`abandoned`, `notFound`, ...)                        |
+| created_at / updated_at | timestamptz                     |                                                                                |
 
 ## 2. Relationships
 
@@ -224,9 +225,11 @@ Cross-venue integrity: a trigger (or composite FK) asserts that `song_requests.s
 | group_members   | `(user_id)`                                                                                      | RLS: which groups/nights the user is in               |
 | songs           | GIN `(search)`; `(venue_id, is_active)`; unique `(venue_id, title, artist)`                      | Full-text search, catalog listing, import upsert      |
 | songs           | `(venue_id, lower(title) text_pattern_ops)`                                                      | Prefix matching fallback for short queries            |
+| songs           | `(venue_id, lower(title), lower(artist))`                                                        | Case-insensitive match during catalog import          |
 | song_requests   | `(night_id, status)`; `(requested_by, night_id, status)`; `(night_id, song_id, created_at desc)` | Queue state, maxPending checks, duplicate-song window |
 | queue_entries   | unique `(request_id)`; `(night_id, position)`                                                    | Ordered queue read                                    |
 | catalog_imports | `(venue_id, created_at desc)`                                                                    | Import history                                        |
+| catalog_imports | partial unique `(venue_id) where status = 'processing'`                                          | One running import per venue                          |
 
 The venue settings page (`/admin/settings`) upserts `queue_rules` with `updated_by = auth.uid()` and updates `venues.name`, both through the signed-in owner/admin's session. The stored `config` is always the complete, validated shape `parseRules` returns.
 
@@ -243,6 +246,8 @@ Helper functions (`security definer`, stable):
 - `submit_request(night_id, song_id, singers, note, position)` - callable by `authenticated`; inserts `song_requests` and, unless `rules_snapshot.requireHostApproval` is set, `queue_entries` in one transaction. Re-checks every guest-facing rule of QUEUE_RULES.md section 3 against the night's `rules_snapshot` (per-user quota under a per-(night, user) advisory lock), derives `table_id`/`group_id` from the caller's membership, trims singers (40 characters each, at most 20 names, the web app's `SINGERS_HARD_MAX`) and the note, and never places the entry ahead of the current tail. Returns one row `{request_id, entry_id, status, reason}`; `reason` is any engine reason code or `NOT_PARTICIPANT`. The Server Action runs `evaluateRequest` first; the RPC makes a direct call unable to bypass the engine's answer.
 - Trigger `song_requests_end_entry` - when a request becomes `done`, `skipped` or `cancelled`, sets `queue_entries.ended_at` (security definer, so a guest cancel through RLS closes its entry).
 - Trigger `song_requests_guard_guest_update` - before any update by a non-staff user, restores every column except `status` and `updated_at`, so a guest cancel cannot smuggle in a new priority, singers, note or song.
+- `import_catalog_chunk(import_id, rows jsonb)` - `security invoker`, callable by `authenticated`, so RLS limits it to the venue's owner/admin. Requires the import to be `processing`; takes at most 1000 rows of `{title, artist, language, duration_sec, external_ref}`, drops rows without a title or artist (1-300 characters), keeps the first of case-insensitive duplicates, refreshes and reactivates existing songs (values missing from the row keep the catalog's), inserts the rest, sets `last_import_id`, and adds `inserted`, `updated` and `skipped` to the import's `stats`, which it returns.
+- `finish_catalog_import(import_id, deactivate_missing)` - `security invoker`; with `deactivate_missing`, deactivates every active song of the venue whose `last_import_id` is not this import (refuses when the import touched no song), then sets status `done` and `stats.deactivated`.
 - `venue_table_labels(venue_id)` - callable by `authenticated`; `{id, label}` of the venue's tables. `venue_tables` itself is readable by staff only because it holds `qr_token` and `join_code`; guest screens need labels only.
 
 | Table           | select                                                                                                                               | insert                                                           | update                                                                                                                                                        | delete                                          |
@@ -259,9 +264,9 @@ Helper functions (`security definer`, stable):
 | song_requests   | participants of the night and staff                                                                                                  | RPC `submit_request` only (security definer); staff              | guest: own row, only `status` to `cancelled` from `pending/approved/queued` (trigger `song_requests_guard_guest_update` keeps every other column); staff: any | -                                               |
 | queue_entries   | participants of the night and staff                                                                                                  | staff / RPC `submit_request`                                     | staff / trigger `song_requests_end_entry`                                                                                                                     | staff                                           |
 | queue_rules     | staff                                                                                                                                | owner/admin                                                      | owner/admin                                                                                                                                                   | -                                               |
-| catalog_imports | owner/admin                                                                                                                          | owner/admin                                                      | service role                                                                                                                                                  | -                                               |
+| catalog_imports | owner/admin                                                                                                                          | owner/admin                                                      | owner/admin (the import RPCs run as the admin)                                                                                                                | -                                               |
 
-Storage bucket `catalog-uploads`: owner/admin of the venue in the first path segment may insert/select; service role reads for processing.
+Storage bucket `catalog-imports`: owner/admin of the venue in the first path segment may insert/select. The file is kept for reference; parsing happens in the browser (ADR-010).
 
 Edge Functions and scheduled jobs use the service role key and bypass RLS; they must always filter by `venue_id` explicitly.
 
@@ -359,6 +364,7 @@ erDiagram
         text external_ref
         tsvector search
         boolean is_active
+        uuid last_import_id FK
     }
     song_requests {
         uuid id PK

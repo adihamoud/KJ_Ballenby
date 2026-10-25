@@ -17,8 +17,8 @@
      (RLS per venue)   (Google, Microsoft,     (postgres_changes on
                         Phone OTP/Twilio)       queue_entries, song_requests)
             |
-     Supabase Storage  <--  catalog uploads  -->  Edge Function: catalog-import
-                                                  (service role, parses CSV/XML, upserts songs)
+     Supabase Storage  <--  catalog uploads (raw file, for reference)
+     admin browser parses CSV/XML --> Server Actions --> RPC import_catalog_chunk (as the admin, RLS)
 
  Phase 4: VirtualDJ bridge (local app on DJ PC) <-- Realtime/REST --> Supabase
 ```
@@ -81,10 +81,15 @@ Without Supabase configured the same flow runs against an in-memory demo night, 
 
 ### 3.4 Catalog import
 
-1. Admin uploads CSV/XML via the browser directly to Supabase Storage bucket `catalog-uploads/<venue_id>/<uuid>.<ext>` (RLS on storage objects: owner/admin of that venue).
-2. Server Action inserts `catalog_imports` (status `pending`) and invokes Edge Function `catalog-import` with the import id.
-3. Edge Function (service role) streams the file, parses rows, normalizes title/artist, upserts into `songs` on `(venue_id, title, artist)`, updates `stats`, sets status `done` or `failed` with `error`.
-4. Admin UI subscribes to the `catalog_imports` row and shows progress/result.
+Parsing happens in the admin's browser (ADR-010): a VirtualDJ `database.xml` can be tens of MB, more than a Server Action body or a Vercel function request accepts.
+
+1. On `/admin/catalog` the admin picks a CSV, a VirtualDJ `database.xml` or a VirtualDJ playlist (`.vdjfolder`). `lib/catalog/parse.ts` decodes it (UTF-8, UTF-16, Windows-1255), maps columns or VirtualDJ tags, normalizes (whitespace, karaoke/featuring tags in titles, `Artist - Title` file names, language from script) and de-duplicates case-insensitively. The admin sees counts and the first rows before importing.
+2. The browser uploads the raw file to Storage bucket `catalog-imports` at `<venue_id>/<uuid>.<ext>` (RLS on storage objects: owner/admin of that venue), for reference only.
+3. `startCatalogImportAction` inserts `catalog_imports` with status `processing` (one running import per venue; one idle for 15 minutes is marked `failed`).
+4. `importCatalogChunkAction` re-sanitizes each chunk of 500 rows and calls `import_catalog_chunk`, which upserts case-insensitively on `(title, artist)` and accumulates `stats`.
+5. `finishCatalogImportAction` calls `finish_catalog_import`, which optionally deactivates songs the file did not contain and sets status `done`. A failed step marks the import `failed` with an error code; songs from earlier chunks stay (re-importing is idempotent) and nothing is deactivated.
+
+Everything runs as the signed-in owner/admin under RLS; there is no service role in this flow.
 
 ## 4. Realtime strategy
 

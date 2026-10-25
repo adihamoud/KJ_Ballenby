@@ -1,6 +1,8 @@
-import type { VenueTableRow } from "@kj/db";
+import type { CatalogImportStats, ImportStatus, VenueTableRow } from "@kj/db";
 import { DEFAULT_RULES } from "@kj/queue-engine";
 import type { QueueRulesConfig } from "@kj/queue-engine";
+import type { CatalogSong } from "@/lib/catalog/merge";
+import { DEMO_CATALOG } from "@/lib/guest/demo-catalog";
 import { DEMO_TABLES, DEMO_VENUE_ID } from "./venue";
 
 /**
@@ -10,10 +12,21 @@ import { DEMO_TABLES, DEMO_VENUE_ID } from "./venue";
  * A browser that has not changed anything yet reads the seed straight from `lib/demo/venue`.
  */
 
+export interface DemoCatalogImport {
+  id: string;
+  status: ImportStatus;
+  stats: CatalogImportStats;
+  error: string | null;
+  created_at: string;
+}
+
 export interface DemoVenueState {
   venue: { id: string; slug: string; name: string };
   tables: VenueTableRow[];
   rules: QueueRulesConfig;
+  /** The admin's view of the catalog. Guest search keeps serving `DEMO_CATALOG`. */
+  songs: CatalogSong[];
+  imports: DemoCatalogImport[];
 }
 
 const MAX_SANDBOXES = 500;
@@ -52,6 +65,17 @@ export function seedDemoVenue(now: Date = new Date()): DemoVenueState {
       updated_at: createdAt,
     })),
     rules: { ...DEFAULT_RULES },
+    songs: DEMO_CATALOG.map((song) => ({
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      language: song.language,
+      duration_sec: song.duration_sec,
+      external_ref: null,
+      is_active: true,
+      last_import_id: null,
+    })),
+    imports: [],
   };
 }
 

@@ -366,6 +366,7 @@
       "overview": "Overview",
       "tonight": "Tables tonight",
       "tables": "Tables",
+      "catalog": "Catalog",
       "qr": "QR sheet",
       "settings": "Settings",
       "dj": "DJ console",
@@ -394,7 +395,9 @@
       "on": "On",
       "off": "Off",
       "djHint": "Run the night here: queue with drag and drop, player and mixer. Hover a table name to see who sits there and when its turn comes. Music keeps playing while you move between admin tabs.",
-      "openDj": "Open the DJ console"
+      "openDj": "Open the DJ console",
+      "catalog": "{count, plural, =0 {No songs yet} one {# active song} other {# active songs}} in the catalog",
+      "manageCatalog": "Import songs"
     },
     "tonight": {
       "title": "Tables tonight",
@@ -450,6 +453,80 @@
         "notFound": "That table no longer exists. Reload the page.",
         "notAdmin": "Only the venue's owner or admin can change tables.",
         "unavailable": "The change didn't reach the server. Try again in a moment."
+      }
+    },
+    "catalog": {
+      "title": "Song catalog",
+      "metaTitle": "Catalog",
+      "hint": "Guests can only request songs from this list. Upload your VirtualDJ library or a CSV; uploading again updates the songs you already have.",
+      "demoHint": "Demo: imports change this browser's copy of the catalog only. Guest search keeps the demo songs.",
+      "counts": "{active, plural, =0 {No active songs} one {# active song} other {# active songs}}{inactive, plural, =0 {} other {, # hidden}}",
+      "upload": {
+        "title": "Import songs",
+        "formats": "CSV, VirtualDJ database.xml, or a VirtualDJ playlist or saved folder (.vdjfolder). Up to 25 MB.",
+        "vdjHint": "Tip: database.xml holds your whole music library. To import only karaoke tracks, save your karaoke folder in VirtualDJ as a playlist and upload that file.",
+        "file": "Choose a file",
+        "template": "Download a CSV template",
+        "parsing": "Reading the file…"
+      },
+      "preview": {
+        "title": "Ready to import",
+        "format": {
+          "csv": "CSV",
+          "vdj-database": "VirtualDJ database",
+          "vdj-folder": "VirtualDJ playlist"
+        },
+        "found": "{count, plural, =0 {No songs found} one {# song found} other {# songs found}}",
+        "skipped": "{count, plural, one {# entry} other {# entries}} without a title or artist",
+        "duplicates": "{count, plural, one {# duplicate} other {# duplicates}}",
+        "sample": "First songs in the file",
+        "columns": {
+          "title": "Title",
+          "artist": "Artist",
+          "language": "Language",
+          "duration": "Length"
+        },
+        "deactivate": "Hide songs that are not in this file",
+        "deactivateHint": "Use this when the file is your full catalog. Hidden songs keep their history and come back when a later file includes them.",
+        "submit": "{count, plural, one {Import # song} other {Import # songs}}",
+        "another": "Choose another file"
+      },
+      "progress": "Importing… {done} of {total}",
+      "result": {
+        "title": "Import finished",
+        "inserted": "{count} new",
+        "updated": "{count} updated",
+        "deactivated": "{count} hidden",
+        "skipped": "{count} skipped",
+        "again": "Import another file"
+      },
+      "history": {
+        "title": "Recent imports",
+        "empty": "No imports yet.",
+        "unnamed": "Untitled file",
+        "summary": "{inserted} new, {updated} updated, {deactivated} hidden, {skipped} skipped",
+        "status": {
+          "pending": "Waiting",
+          "processing": "Importing",
+          "done": "Done",
+          "failed": "Failed"
+        }
+      },
+      "errors": {
+        "empty": "The file is empty.",
+        "tooLarge": "The file is larger than 25 MB.",
+        "noTitleColumn": "We couldn't find a title column. The first row must name the columns, for example: title,artist,language,duration,file",
+        "unknownXml": "This XML file isn't a VirtualDJ database or playlist.",
+        "tooManyRows": "The file has more than 50,000 songs. Split it and import each part.",
+        "unreadable": "We couldn't read the file.",
+        "notAdmin": "Only the venue's owner or admin can change the catalog.",
+        "unavailable": "The import didn't reach the server. Try again in a moment.",
+        "busy": "Another import is still running. Wait for it to finish, then try again.",
+        "invalid": "The import was rejected. Reload the page and try again.",
+        "notFound": "The import was stopped. Start it again.",
+        "nothingImported": "Nothing was imported, so no songs were hidden.",
+        "upload": "The file couldn't be uploaded. Check your connection and try again.",
+        "abandoned": "Stopped before it finished."
       }
     },
     "qr": {
