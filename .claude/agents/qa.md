@@ -24,6 +24,9 @@ Checklist:
 5. **Mobile**: tap targets under 44px, horizontal overflow at 360px, missing loading/empty/error
    states.
 6. **Tests**: new behaviour without a unit or e2e test; tests that assert implementation details.
-7. **Docs**: schema or rule changes without `docs/` updates; architecture changes without an ADR.
+7. **Privacy**: new cookies, storage keys, third-party hosts or personal-data fields missing from
+   `docs/PRIVACY.md`; personal data in logs, errors or URLs (ADR-012). Run the `privacy-audit`
+   agent for the mechanical pass.
+8. **Docs**: schema or rule changes without `docs/` updates; architecture changes without an ADR.
 
 Run `pnpm check` and report its result. Do not fix things yourself; report them.

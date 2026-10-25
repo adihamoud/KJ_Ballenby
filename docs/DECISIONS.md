@@ -15,6 +15,7 @@ Format: context, decision, consequences. Status is `accepted` unless noted. New 
 | [ADR-009](#adr-009-anonymous-sign-in-as-the-guest-identity)    | Anonymous sign-in as the guest identity    | 2026-10-23 |
 | [ADR-010](#adr-010-catalog-import-parsed-in-the-browser)       | Catalog import parsed in the browser       | 2026-10-25 |
 | [ADR-011](#adr-011-automatic-versioning-with-release-please)   | Automatic versioning with release-please   | 2026-10-25 |
+| [ADR-012](#adr-012-essential-cookies-only)                     | Essential cookies only                     | 2026-10-25 |
 
 ---
 
@@ -326,3 +327,38 @@ release PR and fixes notes; it never bumps versions or tags by hand.
   shape, the release agent the wording.
 - Negative: `CHANGELOG.md` and the manifest are excluded from Prettier, since release-please
   writes its own format.
+
+## ADR-012: Essential cookies only
+
+Date: 2026-10-25
+
+### Context
+
+Guests reach the app by scanning a QR code at a bar table. Every extra screen costs requests, and
+a consent banner on a 360px phone covers the song search. The app already sets only cookies it
+needs to work (Supabase session, `kj_guest`, the locale), and thumbnails are proxied through our
+own origin. Israeli privacy law (with Amendment 13) and, for EU visitors, GDPR/ePrivacy require
+consent for non-essential cookies and tracking, and a notice at the point of collection in any
+case. Nothing recorded which cookies exist or how long personal data is kept.
+
+### Decision
+
+The product uses **strictly necessary cookies and storage only**: sign-in, the guest's table and
+name, language, the offline shell. No analytics, advertising or tracking cookies, no
+fingerprinting and no third-party scripts on guest pages, so no consent banner. Product metrics
+come from our own database (`events` table, phase 3), not from a tracker. Embeds on staff screens
+use privacy-enhanced hosts where the vendor offers one.
+
+`docs/PRIVACY.md` is the register: every cookie, storage key, third party and personal field with
+purpose, lifetime and retention, updated in the PR that changes it. The `privacy` agent owns it;
+the `privacy-audit` agent checks each diff against it.
+
+### Consequences
+
+- Positive: no banner on the guest's path; the notice is a link on the join page and the footer.
+- Positive: a short, checkable list of what we store, which is the base for export, deletion and
+  a privacy policy.
+- Negative: no third-party product analytics. Web Vitals and usage numbers must be first-party or
+  cookieless; adding a tracking tool needs a new ADR that supersedes this one and designs the
+  consent flow.
+- Negative: every PR that touches cookies, storage or personal fields carries a docs change.
