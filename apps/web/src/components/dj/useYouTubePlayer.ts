@@ -82,6 +82,11 @@ export function useYouTubePlayer(
   const readyRef = useRef<[boolean, boolean]>([false, false]);
   const decksRef = useRef<DecksState>(INITIAL_DECKS);
   const warmTimers = useRef<[number | null, number | null]>([null, null]);
+  /**
+   * Decks this hook warmed up and paused at 0:00 itself. Tracked here because YouTube can still
+   * report such a deck as BUFFERING right after the pause, though the video is paused and buffered.
+   */
+  const warmedRef = useRef<[boolean, boolean]>([false, false]);
   const wantRef = useRef(videos);
   wantRef.current = videos;
   const onEndedRef = useRef(onEnded);
@@ -117,7 +122,8 @@ export function useYouTubePlayer(
     (command: DeckCommand) => {
       const player = playersRef.current[command.deck];
       if (!player) return;
-      const warming = warmTimers.current[command.deck] !== null;
+      const warmed = warmedRef.current[command.deck];
+      warmedRef.current[command.deck] = false;
       endWarm(command.deck);
       switch (command.type) {
         case "cue":
@@ -133,9 +139,9 @@ export function useYouTubePlayer(
           previous?.pauseVideo();
           previous?.mute();
           const videoId = decksRef.current.held[command.deck];
-          if (!warming && player.getPlayerState() === YT.PlayerState.PAUSED) {
-            // Warmed up and paused: seeking keeps it paused, with the buffer intact.
-            player.seekTo(0, true);
+          if (warmed) {
+            // Already paused at 0:00 with its buffer. No seek: seeking a video that YouTube
+            // does not report as paused starts playback.
             player.pauseVideo();
           } else if (videoId) {
             // Still loading (or autoplay was blocked): re-cue so it cannot start on its own.
@@ -225,6 +231,7 @@ export function useYouTubePlayer(
                   // Seek first: seeking a playing video keeps it playing, then pause at 0:00.
                   target.seekTo(0, true);
                   target.pauseVideo();
+                  warmedRef.current[deck] = true;
                   setDeckStatus("ready");
                 }
                 return;
@@ -261,6 +268,7 @@ export function useYouTubePlayer(
       });
       playersRef.current = [null, null];
       readyRef.current = [false, false];
+      warmedRef.current = [false, false];
       decksRef.current = INITIAL_DECKS;
       setActiveDeck(0);
       setStatus("loading");
