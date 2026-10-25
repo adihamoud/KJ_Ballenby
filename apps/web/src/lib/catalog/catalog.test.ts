@@ -46,6 +46,14 @@ describe("normalize", () => {
     expect(cleanTitle("(Karaoke)")).toBe("(Karaoke)");
   });
 
+  it("cleans a huge bracket-heavy title in bounded time", () => {
+    // Unbounded, the tag regex backtracks quadratically: this input would take minutes.
+    const start = performance.now();
+    const title = cleanTitle("(a ".repeat(300_000));
+    expect(performance.now() - start).toBeLessThan(1000);
+    expect(title.length).toBeLessThanOrEqual(TITLE_MAX * 2);
+  });
+
   it("resolves the language from the file or the script", () => {
     expect(resolveLanguage("EN", "x", "y")).toBe("en");
     expect(resolveLanguage("Hebrew", "x", "y")).toBe("he");

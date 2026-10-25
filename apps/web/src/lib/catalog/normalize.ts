@@ -7,6 +7,9 @@
 export const TITLE_MAX = 300;
 export const ARTIST_MAX = 300;
 export const EXTERNAL_REF_MAX = 1000;
+// Raw titles are cut to this before the tag regexes run, so their cost stays bounded whatever the
+// input length; tags past it would be cut by TITLE_MAX anyway.
+const TITLE_RAW_MAX = TITLE_MAX * 2;
 export const DURATION_MAX_SEC = 86_400;
 
 /** One song as it is sent to `import_catalog_chunk`. */
@@ -34,7 +37,7 @@ const TITLE_SUFFIX_RE = /\s+-\s+(?:karaoke(?: version)?|instrumental|קריוק�
 
 /** A title without karaoke/featuring tags; falls back to the plain cleaned title if nothing is left. */
 export function cleanTitle(value: unknown): string {
-  const cleaned = cleanText(value);
+  const cleaned = cleanText(value).slice(0, TITLE_RAW_MAX);
   const stripped = cleanText(cleaned.replace(TITLE_TAG_RE, "").replace(TITLE_SUFFIX_RE, ""));
   return stripped || cleaned;
 }

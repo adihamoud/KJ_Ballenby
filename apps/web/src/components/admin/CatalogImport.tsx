@@ -102,6 +102,7 @@ export function CatalogImport({ venueId, mode }: { venueId: string; mode: "live"
       }
     }
 
+    let importId: string | null = null;
     try {
       const started = await startCatalogImportAction({
         storagePath,
@@ -115,7 +116,7 @@ export function CatalogImport({ venueId, mode }: { venueId: string; mode: "live"
         setPhase({ kind: "error", error: started.error });
         return;
       }
-      const { importId } = started;
+      importId = started.importId;
 
       let done = 0;
       for (const chunk of chunkRows(catalog.rows)) {
@@ -139,7 +140,11 @@ export function CatalogImport({ venueId, mode }: { venueId: string; mode: "live"
       }
       router.refresh();
     } catch {
+      // A thrown action (network drop, oversized chunk) must not leave the import "processing",
+      // which would block new imports for this venue until it times out.
+      if (importId) await failCatalogImportAction(importId, "unavailable").catch(() => undefined);
       setPhase({ kind: "error", error: "unavailable" });
+      router.refresh();
     }
   }
 

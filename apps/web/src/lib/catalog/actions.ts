@@ -159,6 +159,11 @@ export async function importCatalogChunkAction(
   if (!UUID_RE.test(importId) || !Array.isArray(rows) || rows.length > MAX_CHUNK_ROWS) {
     return { ok: false, error: "invalid" };
   }
+  // Authorize before touching row contents: sanitizing runs regexes over caller-controlled text.
+  const gated = await gate();
+  if (!gated.ok) return gated;
+  const { venue } = gated;
+
   const clean: CatalogRow[] = [];
   let rejected = 0;
   for (const row of rows) {
@@ -166,10 +171,6 @@ export async function importCatalogChunkAction(
     if (sanitized) clean.push(sanitized);
     else rejected++;
   }
-
-  const gated = await gate();
-  if (!gated.ok) return gated;
-  const { venue } = gated;
 
   const supabase = await createServerSupabase();
   if (!supabase || venue.mode === "demo") {
