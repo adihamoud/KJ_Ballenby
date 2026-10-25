@@ -56,8 +56,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} dir={dir(locale)} className={heebo.variable}>
       <body className="safe-area min-h-dvh antialiased">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
-        <VersionFooter />
+        <NextIntlClientProvider>
+          {children}
+          {/* Inside the provider: its privacy link is a next-intl client Link. */}
+          <VersionFooter />
+        </NextIntlClientProvider>
       </body>
     </html>
   );
