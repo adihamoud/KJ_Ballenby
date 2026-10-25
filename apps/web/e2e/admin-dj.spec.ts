@@ -66,16 +66,21 @@ test.describe("admin DJ console (demo night)", () => {
     await expect(rows).toHaveCount(5);
     const before = await rowTitles(page);
 
+    // Drag like a person on a phone: pull the handle to the top edge, hold while the page scrolls
+    // up, and let go once the console announces place 1. Releasing right after a burst of moves
+    // at precomputed coordinates drops short on WebKit: the first row starts off-screen, and
+    // dnd-kit picks the drop target from React state that WebKit renders behind the moves.
     const handle = rows.nth(4).getByTestId("drag-handle");
-    const target = rows.nth(0).getByTestId("drag-handle");
     await handle.scrollIntoViewIfNeeded();
     const from = await handle.boundingBox();
-    const to = await target.boundingBox();
-    if (!from || !to) throw new Error("handles not laid out");
-    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    if (!from) throw new Error("handle not laid out");
+    const x = from.x + from.width / 2;
+    await page.mouse.move(x, from.y + from.height / 2);
     await page.mouse.down();
-    await page.mouse.move(from.x + from.width / 2, from.y - 10, { steps: 5 });
-    await page.mouse.move(to.x + to.width / 2, to.y - 20, { steps: 25 });
+    await page.mouse.move(x, from.y - 10, { steps: 5 });
+    await expect(rows.nth(4)).toHaveAttribute("data-dragging", "true");
+    await page.mouse.move(x, 5, { steps: 20 });
+    await expect(page.getByText(`${before[4]} is over place 1.`)).toBeAttached();
     await page.mouse.up();
 
     await expect.poll(async () => (await rowTitles(page))[0]).toBe(before[4]);
