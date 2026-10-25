@@ -1,12 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { SearchSongRow } from "@kj/db";
+import { CloseIcon, MinusIcon, PlusIcon } from "@/components/icons";
 import { GUEST_NAME_MAX } from "@/lib/guest/join-code";
 import { createSongRequest } from "@/lib/guest/request-actions";
 import { REQUEST_NOTE_MAX, rejectMessageKey } from "@/lib/guest/request-model";
 import type { CreateRequestResponse } from "@/lib/guest/request-model";
+import { youtubeThumbnailUrl } from "@/lib/youtube";
 
 export interface RequestSheetProps {
   song: SearchSongRow;
@@ -37,9 +40,19 @@ export function RequestSheet({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
+  const thumb = song.videos[0];
 
   useEffect(() => {
     firstFieldRef.current?.focus();
+  }, []);
+
+  // The page behind the sheet must not scroll with it.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
   }, []);
 
   useEffect(() => {
@@ -73,7 +86,7 @@ export function RequestSheet({
     <div className="fixed inset-0 z-40 flex items-end justify-center" role="presentation">
       <button
         type="button"
-        className="absolute inset-0 bg-black/60"
+        className="animate-fade-in absolute inset-0 bg-black/70 backdrop-blur-sm"
         aria-label={t("guest.request.close")}
         onClick={onClose}
       />
@@ -83,14 +96,28 @@ export function RequestSheet({
         aria-labelledby={titleId}
         data-testid="request-sheet"
         onSubmit={submit}
-        className="card safe-area relative flex w-full max-w-md flex-col gap-4 rounded-b-none p-5"
+        className="animate-sheet-in safe-area bg-surface border-border-strong relative flex max-h-[92dvh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-t-3xl border border-b-0 px-5 pt-3 pb-5 shadow-(--shadow-sheet)"
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-brand text-sm font-semibold tracking-wide uppercase">
-              {t("guest.request.title")}
-            </p>
-            <h2 id={titleId} className="truncate text-xl font-bold" dir="auto">
+        <span aria-hidden="true" className="bg-border-strong mx-auto h-1.5 w-10 rounded-full" />
+
+        <div className="flex items-center gap-3">
+          {thumb ? (
+            <Image
+              src={youtubeThumbnailUrl(thumb.youtube_id)}
+              alt=""
+              width={80}
+              height={45}
+              className="aspect-video w-20 shrink-0 rounded-lg object-cover"
+            />
+          ) : (
+            <span
+              className="bg-surface-3 aspect-video w-20 shrink-0 rounded-lg"
+              aria-hidden="true"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow text-brand">{t("guest.request.title")}</p>
+            <h2 id={titleId} className="truncate text-lg leading-tight font-black" dir="auto">
               {song.title}
             </h2>
             <p className="text-muted truncate text-sm" dir="auto">
@@ -100,22 +127,28 @@ export function RequestSheet({
           <button
             type="button"
             onClick={onClose}
-            className="text-muted -me-2 p-2 text-xl leading-none"
+            className="bg-surface-2 text-muted hover:text-text -me-1 flex size-9 shrink-0 items-center justify-center rounded-full"
             aria-label={t("guest.request.close")}
           >
-            ×
+            <CloseIcon size={18} />
           </button>
         </div>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1 text-sm font-medium">
+        <fieldset className="flex flex-col gap-2.5">
+          <legend className="mb-2 text-sm font-semibold">
             {t("guest.request.singers", { max: maxSingers })}
           </legend>
           {singers.map((singer, index) => (
-            <div key={index} className="flex gap-2">
+            <div key={index} className="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="bg-brand-2/20 text-brand-2 flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-black tabular-nums"
+              >
+                {index + 1}
+              </span>
               <input
                 ref={index === 0 ? firstFieldRef : undefined}
-                className="input"
+                className="input min-h-12"
                 type="text"
                 autoComplete="off"
                 maxLength={GUEST_NAME_MAX}
@@ -130,11 +163,11 @@ export function RequestSheet({
               {singers.length > 1 && (
                 <button
                   type="button"
-                  className="btn btn-secondary shrink-0 px-3"
+                  className="bg-surface-2 text-muted hover:text-danger flex size-10 shrink-0 items-center justify-center rounded-full"
                   aria-label={t("guest.request.removeSinger", { n: index + 1 })}
                   onClick={() => setSingers((prev) => prev.filter((_, i) => i !== index))}
                 >
-                  −
+                  <MinusIcon size={18} />
                 </button>
               )}
             </div>
@@ -142,18 +175,19 @@ export function RequestSheet({
           {canAddSinger && (
             <button
               type="button"
-              className="text-brand-2 self-start py-1 text-sm font-semibold"
+              className="btn btn-secondary btn-sm self-start"
               onClick={() => setSingers((prev) => [...prev, ""])}
             >
+              <PlusIcon size={16} />
               {t("guest.request.addSinger")}
             </button>
           )}
         </fieldset>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">{t("guest.request.note")}</span>
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">{t("guest.request.note")}</span>
           <textarea
-            className="input min-h-20 resize-none"
+            className="input min-h-20 resize-none py-3"
             maxLength={REQUEST_NOTE_MAX}
             placeholder={t("guest.request.notePlaceholder")}
             value={note}
@@ -162,13 +196,17 @@ export function RequestSheet({
         </label>
 
         {error && (
-          <p role="alert" className="text-danger text-sm" data-testid="request-error">
+          <p
+            role="alert"
+            className="bg-danger/10 text-danger border-danger/30 rounded-xl border px-3 py-2.5 text-sm font-medium"
+            data-testid="request-error"
+          >
             {error}
           </p>
         )}
 
-        <button type="submit" className="btn btn-primary" disabled={pending}>
-          {pending ? t("common.loading") : t("guest.request.submit")}
+        <button type="submit" className="btn btn-primary text-base" disabled={pending}>
+          {pending ? t("guest.request.sending") : t("guest.request.submit")}
         </button>
       </form>
     </div>

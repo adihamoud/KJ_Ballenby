@@ -8,9 +8,24 @@
   },
   "landing": {
     "title": "Sing in turn, no fighting over the mic",
-    "subtitle": "Scan the QR code on your table, pick a song, and the app orders the queue fairly between tables.",
+    "subtitle": "Scan the QR code on your table, pick a song, and see exactly when you're up.",
+    "noAccount": "No download, no sign-up.",
+    "steps": {
+      "scan": {
+        "title": "Scan",
+        "body": "The QR code on your table, or type the code next to it."
+      },
+      "pick": {
+        "title": "Pick a song",
+        "body": "From the venue's catalog, solo or with friends."
+      },
+      "sing": {
+        "title": "Sing",
+        "body": "Watch your place in line and know when it's your turn."
+      }
+    },
     "guestCta": "Join as guest",
-    "cta": "Sign in",
+    "cta": "Staff sign in",
     "forVenues": "Run a venue? ",
     "forVenuesLink": "Venue admin"
   },
@@ -39,51 +54,66 @@
   "join": {
     "title": "Join your table",
     "subtitle": "Scan the QR code on your table, or type the code printed next to it.",
+    "scanHint": "See a QR code on your table? Scan it with your camera and the code fills itself in.",
+    "demoHint": "Demo venue: try the code {code}",
     "codeLabel": "Table code",
-    "codePlaceholder": "DEMO1",
+    "codePlaceholder": "ABC123",
+    "codeHint": "4–8 letters and digits, printed next to the QR code",
     "nameLabel": "What should we call you?",
-    "namePlaceholder": "The name shown in the queue",
+    "namePlaceholder": "The name the DJ will call out",
     "nameHint": "Just tell us what to call you.",
     "submit": "Join",
+    "submitting": "Joining…",
     "joining": "Joining {table}",
     "confirmSubmit": "Yes, that's my table",
     "alreadyJoined": "You already joined {table} at {venue}.",
     "backToTable": "Back to your table",
     "errors": {
-      "invalidCode": "The code is 4–8 letters and digits",
-      "nameRequired": "Enter a name (up to 40 characters)",
+      "invalidCode": "A table code is 4–8 letters and digits.",
+      "nameRequired": "Tell us your name (up to 40 characters).",
       "notFound": "We couldn't find a table with that code. Check it again or ask the staff.",
       "unavailable": "We couldn't reach the server. Try again in a moment.",
       "identity": "We couldn't sign you in right now. Wait a moment and tap Join again."
     },
     "tokenNotFound": {
       "title": "This QR code is no longer active",
-      "body": "You can type the table code instead.",
+      "body": "Type the table code instead, or ask the staff for a fresh one.",
       "cta": "Enter a code"
     }
   },
   "guest": {
     "metaTitle": "My table",
-    "title": "Your table: {table}",
+    "title": "Table {table}",
     "joinedAs": "Joined as {name}",
+    "statusLabel": {
+      "open": "Night is on",
+      "closed": "Not started yet",
+      "gone": "Table inactive",
+      "unknown": "No connection"
+    },
     "status": {
-      "open": "The night is on! Pick a song from the catalog below and tap Request.",
-      "closed": "The night hasn't started yet. We'll update when the DJ opens the queue.",
+      "open": "Pick a song from the catalog to get in line.",
+      "closed": "The DJ hasn't opened the queue yet. Browse the catalog and pick your song in the meantime.",
       "gone": "This table is no longer active. Scan a new QR code or ask the staff for a code.",
-      "unknown": "We couldn't check the night status. We'll try again on the next refresh."
+      "unknown": "We couldn't check on the night. We'll try again in a moment."
     },
     "switchTable": "Switch table",
     "leave": "Leave table",
     "search": {
       "title": "Find a song",
-      "placeholder": "Song title or artist",
+      "placeholder": "Song title or artist…",
+      "clear": "Clear search",
       "languageFilter": "Filter by language",
       "all": "All",
       "lang": {
         "he": "Hebrew",
         "en": "English"
       },
-      "noResults": "No songs match “{query}”. Try another word.",
+      "results": "{count, plural, =0 {No results} one {# song} other {# songs}}",
+      "resultsMore": "{count}+ songs",
+      "noResults": "No songs match “{query}”. Try the artist or another word.",
+      "noSongs": "Nothing in the catalog yet.",
+      "browseOnly": "Browse ahead. Requesting opens when the night starts.",
       "versions": "Versions",
       "versionN": "Version {n}",
       "openOnYoutube": "Open {title} on YouTube",
@@ -93,7 +123,7 @@
       },
       "request": "Request",
       "requestSong": "Request {title}",
-      "requested": "Sent! {title} is in your list."
+      "requested": "Sent! {title} is on your list."
     },
     "request": {
       "title": "Request a song",
@@ -101,11 +131,12 @@
       "singers": "Who's singing? (up to {max})",
       "singerN": "Singer {n}",
       "singerPlaceholder": "Name",
-      "addSinger": "+ Add a singer",
+      "addSinger": "Add a singer",
       "removeSinger": "Remove singer {n}",
       "note": "Note for the DJ (optional)",
       "notePlaceholder": "Birthday, key change, no guide vocals…",
       "submit": "Send request",
+      "sending": "Sending…",
       "errors": {
         "noSession": "Join a table to request a song.",
         "noIdentity": "We couldn't sign you in as a guest yet. Tap Try again at the top of the page.",
@@ -117,15 +148,17 @@
     "queue": {
       "title": "Your songs",
       "length": "{count, plural, =0 {queue is empty} one {# song in the queue} other {# songs in the queue}}",
-      "empty": "You haven't requested anything yet. Pick a song below.",
+      "empty": "You haven't requested anything yet. Pick a song from the catalog below.",
       "closed": "The queue opens when the DJ starts the night.",
-      "nowSinging": "On the mic: {title} ({singers})",
-      "youreNext": "You're up next with {title}! Head to the stage.",
+      "nowSinging": "On the mic: {title}",
+      "youreNext": "You're up next! {title} follows this song. Make your way to the stage.",
       "onMic": "You're on the mic!",
       "awaitingApproval": "Waiting for the DJ to approve",
-      "place": "{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} in line · {ahead, plural, =0 {you're next} one {# song before you} other {# songs before you}}",
+      "ahead": "{ahead, plural, =0 {you're next} one {# song before you} other {# songs before you}}",
+      "eta": "in about {minutes} min",
+      "etaSoon": "any minute now",
       "cancel": "Cancel",
-      "confirmCancel": "Cancel this request?",
+      "confirmCancel": "Cancel your request for {title}?",
       "retryIdentity": "Try again",
       "errors": {
         "noSession": "Join a table to see the queue.",
@@ -482,6 +515,7 @@
   },
   "notFound": {
     "title": "Page not found",
+    "body": "That link is broken or the page has moved.",
     "home": "Go home"
   }
 }

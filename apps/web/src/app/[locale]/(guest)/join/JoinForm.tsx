@@ -27,19 +27,21 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
   const codeDefault = state.code ?? code;
   const nameDefault = state.name ?? name;
   const fieldKey = `${codeDefault}\u0000${nameDefault}`;
+  const codeInvalid = state.error === "invalidCode" || state.error === "notFound";
+  const nameInvalid = state.error === "nameRequired";
 
   return (
-    <form action={formAction} className="card flex flex-col gap-4 p-5">
+    <form action={formAction} className="card flex flex-col gap-5 p-5">
       <input type="hidden" name="locale" value={locale} />
 
       {lockedCode ? (
         <input type="hidden" name="code" value={lockedCode} />
       ) : (
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">{t("codeLabel")}</span>
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">{t("codeLabel")}</span>
           <input
             key={`code:${fieldKey}`}
-            className="input text-center text-2xl tracking-[0.3em] uppercase"
+            className="input h-16 text-center font-mono text-3xl font-bold tracking-[0.3em] uppercase"
             name="code"
             dir="ltr"
             inputMode="text"
@@ -49,13 +51,15 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
             maxLength={36}
             placeholder={t("codePlaceholder")}
             defaultValue={codeDefault}
+            aria-invalid={codeInvalid || undefined}
             required
           />
+          <span className="text-faint text-xs">{t("codeHint")}</span>
         </label>
       )}
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium">{t("nameLabel")}</span>
+      <label className="flex flex-col gap-2">
+        <span className="text-sm font-semibold">{t("nameLabel")}</span>
         <input
           key={`name:${fieldKey}`}
           className="input"
@@ -65,18 +69,22 @@ export function JoinForm({ locale, code = "", lockedCode, name = "" }: JoinFormP
           maxLength={GUEST_NAME_MAX}
           placeholder={t("namePlaceholder")}
           defaultValue={nameDefault}
+          aria-invalid={nameInvalid || undefined}
           required
         />
       </label>
 
       {state.error && (
-        <p role="alert" className="text-danger text-sm">
+        <p
+          role="alert"
+          className="bg-danger/10 text-danger border-danger/30 rounded-xl border px-3 py-2.5 text-sm font-medium"
+        >
           {t(`errors.${state.error}`)}
         </p>
       )}
 
-      <button type="submit" className="btn btn-primary" disabled={pending}>
-        {lockedCode ? t("confirmSubmit") : t("submit")}
+      <button type="submit" className="btn btn-primary text-base" disabled={pending}>
+        {pending ? t("submitting") : lockedCode ? t("confirmSubmit") : t("submit")}
       </button>
     </form>
   );

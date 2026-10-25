@@ -170,6 +170,26 @@ describe("guestQueueView", () => {
     expect(mine.ahead).toBe(5);
   });
 
+  it("estimates when the guest's song starts, later for each song ahead", () => {
+    const s = demoSnapshot(NOW);
+    const res = request(s, "I Will Survive");
+    if (!res.ok) throw new Error("setup");
+    const view = guestQueueView(res.snapshot, "guest-dana", LATER);
+    const mine = view.mine[0]!;
+    expect(mine.startsAt).not.toBeNull();
+    const startMs = Date.parse(mine.startsAt!);
+    // Five songs and the rest of the one on the mic come first: well over ten minutes out.
+    expect(startMs).toBeGreaterThan(Date.parse(LATER) + 10 * 60_000);
+
+    const after = applyHostAction(
+      res.snapshot,
+      { type: "done", entryId: "demo-entry-1", startNext: true },
+      LATER,
+    );
+    const moved = guestQueueView(after.snapshot, "guest-dana", LATER).mine[0]!;
+    expect(Date.parse(moved.startsAt!)).toBeLessThan(startMs);
+  });
+
   it("hides other guests' requests and reports no position while pending", () => {
     const s = demoSnapshot(NOW);
     const approval: DjSnapshot = { ...s, rules: { ...s.rules, requireHostApproval: true } };
@@ -179,6 +199,7 @@ describe("guestQueueView", () => {
     expect(view.mine.map((r) => r.title)).toEqual(["I Will Survive"]);
     expect(view.mine[0]?.position).toBeNull();
     expect(view.mine[0]?.ahead).toBeNull();
+    expect(view.mine[0]?.startsAt).toBeNull();
     expect(guestQueueView(res.snapshot, "someone-else", LATER).mine).toEqual([]);
   });
 

@@ -1,7 +1,7 @@
 import type { SearchSongRow } from "@kj/db";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { searchDemoCatalog } from "./demo-catalog";
-import type { SongLanguage } from "./song-query";
+import { SONG_SEARCH_LIMIT, type SongLanguage } from "./song-query";
 
 export type SearchSongsResult =
   { ok: true; songs: SearchSongRow[] } | { ok: false; reason: "unavailable" };
@@ -23,7 +23,7 @@ export async function searchSongs(
     p_venue_id: venueId,
     p_query: query,
     p_language: language,
-    p_limit: 30,
+    p_limit: SONG_SEARCH_LIMIT,
   });
   if (error) {
     console.error("search_songs failed", { venueId, query, message: error.message });

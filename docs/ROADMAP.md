@@ -44,7 +44,7 @@ Deliverables:
 - [ ] `@kj/queue-engine` complete: `evaluateRequest`, `reorder`, all reason codes, worked-example tests
 - [~] Server Actions/RPCs for submit, approve, start, done, skip, reorder, pin, priority (transactional) (submit is the transactional `submit_request` RPC; host actions are Server Actions over RLS in `apps/web/src/lib/dj/actions.ts`, a transactional RPC for them pending)
 - [~] DJ dashboard: realtime ordered queue, controls, copy-to-VirtualDJ action, open/close night (console at `/dj` with queue manager, YouTube player and browser mixer; realtime invalidation + polling; drag-and-drop reorder by a grip handle with mouse, touch or keyboard, plus up/down arrows, also on `/admin/dj`)
-- [~] Guest queue view with position, estimated wait, realtime updates, "you're up next" banner + vibration (own requests with place in line, songs ahead, realtime refetch + polling and an "up next" banner on the guest home; estimated wait and vibration pending)
+- [x] Guest queue view with position, estimated wait, realtime updates, "you're up next" banner + vibration (own requests with place in line, songs ahead and an estimated start from `estimateStarts`, realtime refetch + polling, an "up next" banner and a short vibration when the guest becomes next or steps on the mic)
 - [x] Guest cancel own request
 - [~] Playwright e2e: join -> search -> request -> DJ done -> position updates (join, search, request, rejection, cancel and DJ-sees-request covered on the demo night in `e2e/guest-request.spec.ts`; DJ done -> position update pending a server-backed demo DJ)
 - [ ] Error tracking (Sentry) and structured logs
