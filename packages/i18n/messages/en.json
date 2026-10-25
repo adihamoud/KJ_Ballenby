@@ -765,7 +765,7 @@
       "vercel": "<b>Vercel.</b> Hosts the site. Sees IP address, browser type and which pages loaded, in system logs.",
       "login": "<b>Google and Microsoft.</b> Only if you chose to sign in with them.",
       "twilio": "<b>Twilio.</b> Sends the SMS sign-in code, only if you sign in with a phone. Receives the number and the code.",
-      "youtube": "<b>YouTube.</b> Videos play only on the DJ's screens, never on your phone, so YouTube gets nothing from your phone. On the DJ's screens YouTube sees the device's IP address and sets its own cookies.",
+      "youtube": "<b>YouTube.</b> Videos play only on the DJ's screens, never on your phone, so YouTube gets nothing from your phone. On the DJ's screens the player runs in YouTube's privacy-enhanced mode, but YouTube still sees the device's IP address and may store its own cookies and identifiers on it.",
       "abroad": "These providers' servers may be outside Israel."
     },
     "retention": {

@@ -37,6 +37,8 @@ type DeckRefs = readonly [
 ];
 
 const API_SRC = "https://www.youtube.com/iframe_api";
+/** Privacy-enhanced embed host for both decks (docs/PRIVACY.md, G3). The API script stays on www. */
+const PLAYER_HOST = "https://www.youtube-nocookie.com";
 let apiPromise: Promise<typeof YT> | null = null;
 
 /** Give up waiting for a warm-up that never starts playing (blocked autoplay, a long ad). */
@@ -197,6 +199,7 @@ export function useYouTubePlayer(
         const host = document.createElement("div");
         container.replaceChildren(host);
         playersRef.current[deck] = new api.Player(host, {
+          host: PLAYER_HOST,
           width: "100%",
           height: "100%",
           playerVars: {
