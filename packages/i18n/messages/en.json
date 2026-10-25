@@ -7,6 +7,72 @@
     "language": "Language",
     "version": "Version"
   },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "dismiss": "Dismiss message",
+    "footerNav": "Site links",
+    "menu": {
+      "open": "Accessibility",
+      "title": "Accessibility settings",
+      "close": "Close accessibility settings",
+      "textSize": "Text size",
+      "sampleLetter": "A",
+      "textSizes": {
+        "default": "Normal",
+        "large": "Large",
+        "larger": "Larger"
+      },
+      "highContrast": "High contrast",
+      "highContrastHint": "Brighter secondary text and clearer borders.",
+      "reduceMotion": "Stop animations",
+      "reduceMotionHint": "No sliding, fading or pulsing.",
+      "underlineLinks": "Underline links",
+      "underlineLinksHint": "Shows every link without relying on colour.",
+      "deviceNote": "Saved in this browser only. Your phone's own text size and zoom keep working too.",
+      "reset": "Reset to default",
+      "statement": "Accessibility statement"
+    },
+    "statement": {
+      "link": "Accessibility statement",
+      "title": "Accessibility statement",
+      "intro": "KJ Ballenby is built so that everyone at the bar can join a table, request a song and follow the queue, including people who use a screen reader, a keyboard or switch, magnification or larger text.",
+      "standard": {
+        "title": "The standard we follow",
+        "body": "The app aims to meet WCAG 2.2 at level AA, in Hebrew and in English. This covers Israeli Standard IS 5568 (based on WCAG 2.0 AA), as required by the Equal Rights for Persons with Disabilities (Accessibility Adjustments for Service) Regulations, 2013."
+      },
+      "done": {
+        "title": "What we have done",
+        "keyboard": "Every action works from a keyboard, with a visible focus outline and a \"Skip to main content\" link on every page.",
+        "screenReaders": "Buttons, fields and status messages have names and roles that VoiceOver and TalkBack read in Hebrew and English.",
+        "structure": "Each page has headings, landmarks and the right language and reading direction.",
+        "contrast": "Text and controls meet the WCAG contrast ratios on the dark theme.",
+        "zoom": "Pages can be zoomed and the text enlarged; nothing scrolls sideways on narrow screens.",
+        "menu": "An accessibility menu at the bottom of every page sets text size, high contrast, no animations and underlined links.",
+        "motion": "Animations stop when your device asks for reduced motion.",
+        "drag": "Anything that can be dragged can also be moved with buttons.",
+        "checks": "Every change to the app is checked automatically for accessibility before it is released."
+      },
+      "settings": {
+        "title": "Accessibility settings",
+        "body": "Open \"Accessibility\" at the bottom of any page to change text size, contrast, motion and link underlines. The settings are saved in your browser only."
+      },
+      "limits": {
+        "title": "Known limitations",
+        "youtube": "Song videos play in YouTube's player. Its controls and captions are provided by YouTube.",
+        "confirm": "A few confirmations (cancelling a request, replacing a table code) use your browser's own dialog, which may appear in your browser's language.",
+        "venue": "This statement covers the app. The physical accessibility of each venue is the venue's responsibility; ask the venue directly."
+      },
+      "contact": {
+        "title": "Accessibility contact",
+        "body": "Found something that is hard to use, or need the information in another way? Tell us what happened and on which page, and we will get back to you.",
+        "name": "Contact",
+        "email": "Email",
+        "phone": "Phone",
+        "pending": "The accessibility contact's details are being finalised and will be published here."
+      },
+      "updated": "Last updated: {date}"
+    }
+  },
   "landing": {
     "title": "Sing in turn, no fighting over the mic",
     "subtitle": "Scan the QR code on your table, pick a song, and see exactly when you're up.",
@@ -674,11 +740,12 @@
       "never": "We don't sell data, show ads, build a profile of you or track you on other sites."
     },
     "cookies": {
-      "title": "Cookies",
+      "title": "Cookies and storage",
       "intro": "We only use cookies the app can't work without. No analytics, advertising or tracking cookies, which is why there is no consent banner.",
       "session": "<b>Sign-in</b> (sb-…-auth-token): keeps you signed in on this phone, guests included. Lasts up to 400 days or until you sign out.",
       "table": "<b>Your table</b> (kj_guest): the table and venue you joined and the name you picked. Deleted after 12 hours or when you leave the table.",
       "locale": "<b>Language</b> (NEXT_LOCALE): Hebrew or English, if you switched. Deleted when you close the browser.",
+      "a11y": "<b>Accessibility settings</b> (kj.a11y, stored in the browser, not a cookie): text size, contrast, animations and link underlines, only if you changed them in the accessibility menu. Never sent to us. Deleted when you reset them or clear the site's data.",
       "firstParty": "While you use the app, your phone talks only to our server and to Supabase, our database provider. If you choose to sign in with Google or Microsoft, you visit their page for that step. Song pictures also come through our server, so Google doesn't see who you are."
     },
     "sharing": {

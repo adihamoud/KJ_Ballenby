@@ -95,6 +95,9 @@ export function TableRowActions({ table }: TableRowActionsProps) {
               maxLength={TABLE_LABEL_MAX}
               defaultValue={renameState.error ? (renameState.label ?? table.label) : table.label}
               required
+              // The owner just pressed "Rename": moving focus into the field they asked for is
+              // expected, not a surprise jump (the concern behind no-autofocus).
+              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
           </label>

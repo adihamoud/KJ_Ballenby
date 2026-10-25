@@ -23,7 +23,7 @@ export default async function GuestHome({ params }: { params: Promise<{ locale: 
   const canAdmin = staff?.role === "owner" || staff?.role === "admin";
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6">
       <header className="flex items-center justify-between">
         <span className="text-lg font-bold">{t("common.appName")}</span>
         <LocaleSwitcher />

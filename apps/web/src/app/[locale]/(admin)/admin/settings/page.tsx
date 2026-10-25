@@ -18,7 +18,7 @@ export default async function AdminSettings({ params }: { params: Promise<{ loca
   const rules = await loadAdminRules(loaded.venue);
 
   return (
-    <main className="flex flex-col gap-4">
+    <main id="main" className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
       {rules.ok ? (
         <SettingsForm

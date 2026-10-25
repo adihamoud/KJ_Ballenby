@@ -33,7 +33,7 @@ export function TablesBoard({ initial }: { initial: TableBoard }) {
   });
 
   return (
-    <main className="flex flex-col gap-4" data-testid="tables-board" aria-busy={pending}>
+    <main id="main" className="flex flex-col gap-4" data-testid="tables-board" aria-busy={pending}>
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="text-muted text-sm">{t("hint")}</p>
@@ -111,7 +111,7 @@ function TableCard({
       </header>
 
       {nightOpen && (
-        <section className="flex flex-col gap-1.5" aria-label={t("guests")}>
+        <section className="flex flex-col gap-1.5">
           <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">
             {t("guests")} · {row.guests.length}
           </h3>
@@ -147,7 +147,7 @@ function TableCard({
       )}
 
       {nightOpen && (
-        <section className="flex flex-col gap-1.5" aria-label={t("waiting")}>
+        <section className="flex flex-col gap-1.5">
           <h3 className="text-muted text-xs font-semibold tracking-wide uppercase">
             {t("waiting")} · {row.waiting.length}
           </h3>

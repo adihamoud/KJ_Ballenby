@@ -19,7 +19,7 @@ export default async function AdminTables({ params }: { params: Promise<{ locale
   const tables = await loadAdminTables(loaded.venue);
 
   return (
-    <main className="flex flex-col gap-4">
+    <main id="main" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <h1 className="text-2xl font-bold">{t("tables.title")}</h1>
         <Link href="/admin/qr" className="text-muted text-sm underline">

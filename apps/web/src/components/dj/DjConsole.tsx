@@ -45,6 +45,7 @@ export function DjConsole({
   tablesHref = null,
 }: DjConsoleProps) {
   const t = useTranslations("dj");
+  const ta = useTranslations("a11y");
   const format = useFormatter();
   const locale = useLocale();
   const { snapshot, night, isLive, connection, error, clearError, pending, run, toggleNight } =
@@ -100,6 +101,9 @@ export function DjConsole({
   const panelClass = (own: Tab) => (tab === own ? "" : "hidden lg:block");
 
   const frame = embedded ? "" : "mx-auto max-w-7xl px-4";
+  // Inside the admin the page already has its banner (the admin header), so the console's own
+  // header becomes a named region instead of a second banner landmark.
+  const Header = embedded ? "section" : "header";
   return (
     <TableInfoProvider snapshot={snapshot} tablesHref={tablesHref}>
       <div
@@ -109,7 +113,8 @@ export function DjConsole({
         data-mode={snapshot.mode}
         data-testid="dj-console"
       >
-        <header
+        <Header
+          aria-label={embedded ? t("title") : undefined}
           className={
             embedded
               ? "border-border border-b pb-3"
@@ -205,7 +210,7 @@ export function DjConsole({
               </button>
             ))}
           </nav>
-        </header>
+        </Header>
 
         {error && (
           <div
@@ -215,14 +220,22 @@ export function DjConsole({
             }`}
           >
             <span className="flex-1">{t(`errors.${error}`)}</span>
-            <button type="button" className="underline" onClick={clearError}>
-              ✕
+            <button
+              type="button"
+              className="-my-2 -me-2 flex size-11 shrink-0 items-center justify-center"
+              aria-label={ta("dismiss")}
+              onClick={clearError}
+            >
+              <span aria-hidden="true">✕</span>
             </button>
           </div>
         )}
 
         <main
-          className={`grid w-full flex-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] ${
+          // The console kept mounted behind another admin tab is inert; the skip link targets
+          // the visible page's <main>.
+          id={background ? undefined : "main"}
+          className={`grid w-full flex-1 grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] ${
             embedded ? "pt-4" : "mx-auto max-w-7xl p-4"
           } ${pending ? "[&_button]:transition-opacity" : ""}`}
           aria-busy={pending}

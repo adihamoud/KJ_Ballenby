@@ -35,7 +35,10 @@ export default async function AdminLayout({
 
   if (!loaded.ok) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 py-6">
+      <main
+        id="main"
+        className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 py-6"
+      >
         <section className="card flex flex-col gap-3 p-6 text-center">
           <h1 className="text-xl font-bold">{t(`${loaded.reason}.title`)}</h1>
           <p className="text-muted">{t(`${loaded.reason}.body`)}</p>
@@ -45,7 +48,7 @@ export default async function AdminLayout({
             </Link>
           )}
           {loaded.reason === "unavailable" && (
-            <a href="" className="btn btn-secondary mt-2">
+            <a href="?" className="btn btn-secondary mt-2">
               {t("unavailable.retry")}
             </a>
           )}

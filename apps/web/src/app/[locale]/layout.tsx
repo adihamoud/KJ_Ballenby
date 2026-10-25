@@ -5,6 +5,8 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { dir } from "@kj/i18n";
 import { VersionFooter } from "@/components/VersionFooter";
+import { SkipLink } from "@/components/a11y/SkipLink";
+import { PREFERENCES_BOOT_SCRIPT } from "@/lib/a11y/preferences";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -54,11 +56,16 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={dir(locale)} className={heebo.variable}>
+    // The boot script adds the accessibility menu's data-a11y-* attributes before hydration.
+    <html lang={locale} dir={dir(locale)} className={heebo.variable} suppressHydrationWarning>
       <body className="safe-area min-h-dvh antialiased">
+        {/* Applies saved accessibility settings before first paint (no jump to large text). */}
+        <script dangerouslySetInnerHTML={{ __html: PREFERENCES_BOOT_SCRIPT }} />
         <NextIntlClientProvider>
+          <SkipLink />
           {children}
-          {/* Inside the provider: its privacy link is a next-intl client Link. */}
+          {/* Inside the provider: its privacy and accessibility links are next-intl client
+              components. */}
           <VersionFooter />
         </NextIntlClientProvider>
       </body>

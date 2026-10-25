@@ -32,7 +32,7 @@ const SECTIONS: Section[] = [
   {
     id: "cookies",
     before: ["intro"],
-    items: ["session", "table", "locale"],
+    items: ["session", "table", "locale", "a11y"],
     after: ["firstParty"],
   },
   {
@@ -62,7 +62,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
     t.rich(key as Parameters<typeof t.rich>[0], { b: (chunks) => <strong>{chunks}</strong> });
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-5">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-5">
       <GuestHeader />
 
       <div className="flex flex-col gap-2 pt-2">

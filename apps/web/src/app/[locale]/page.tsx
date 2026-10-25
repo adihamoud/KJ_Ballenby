@@ -22,7 +22,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   const t = await getTranslations();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 px-4 py-5">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 px-4 py-5">
       <GuestHeader />
 
       <section className="flex flex-col gap-5 pt-6">
@@ -46,7 +46,9 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
             href={href}
             data-testid={`entry-${key}`}
             className={`flex items-center gap-4 rounded-[var(--radius-xl)] p-4 transition active:scale-[0.98] ${
-              key === "guest" ? "bg-brand text-white shadow-[var(--shadow-glow)]" : "card-raised"
+              key === "guest"
+                ? "bg-brand-fill text-white shadow-[var(--shadow-glow)]"
+                : "card-raised"
             }`}
           >
             <span
@@ -59,7 +61,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
             <span className="flex min-w-0 flex-col">
               <span className="text-lg font-bold">{t(`landing.entries.${key}.title`)}</span>
               <span
-                className={`text-sm leading-snug ${key === "guest" ? "text-white/85" : "text-muted"}`}
+                className={`text-sm leading-snug ${key === "guest" ? "text-white" : "text-muted"}`}
               >
                 {t(`landing.entries.${key}.body`)}
               </span>
@@ -73,7 +75,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           <li key={key} className="card flex items-center gap-4 p-4">
             <span className="bg-surface-3 text-brand-2 relative flex size-11 shrink-0 items-center justify-center rounded-2xl">
               <Icon size={22} />
-              <span className="bg-brand absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full text-[0.7rem] font-black text-white tabular-nums">
+              <span className="bg-brand-fill absolute -end-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full text-[0.7rem] font-black text-white tabular-nums">
                 {index + 1}
               </span>
             </span>

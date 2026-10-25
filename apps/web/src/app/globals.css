@@ -15,9 +15,14 @@
   --color-border-strong: #3d3957;
   --color-text: #f6f4ff;
   --color-muted: #a39fbd;
-  --color-faint: #716d8a;
+  --color-faint: #8a86a3;
   --color-brand: #ff4d8d;
   --color-brand-2: #917cff;
+  /* Fills under white text. The bright brand colours give white only ~3.1:1, so anything that
+     puts white on brand uses these deeper shades (4.9:1 and 5.2:1, WCAG AA). Pink and violet
+     as text or accents on the dark surfaces stay bright. Checked by src/lib/a11y/contrast.test.ts. */
+  --color-brand-fill: #d42a66;
+  --color-brand-2-fill: #6c55e6;
   --color-accent: #ffc55c;
   --color-success: #3ddc97;
   --color-warning: #ffb547;
@@ -108,6 +113,12 @@ body {
   outline-offset: 2px;
 }
 
+/* Targets that only take focus from script (the skip link's <main>, a dialog container) would
+   otherwise draw a ring around the whole page. */
+[tabindex="-1"]:focus-visible {
+  outline: none; /* a11y-ignore: never reached by Tab, see above */
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -116,6 +127,44 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- Accessibility menu (src/lib/a11y/preferences.ts) ---------- */
+
+/* Text size: every size in the app is in rem, so scaling the root scales the whole page. */
+html[data-a11y-text="large"] {
+  font-size: 118.75%;
+}
+html[data-a11y-text="larger"] {
+  font-size: 137.5%;
+}
+
+/* High contrast: lift secondary text and every boundary; drop the background glow. */
+html[data-a11y-contrast="high"] {
+  --color-muted: #dcd9ef;
+  --color-faint: #c4c1da;
+  --color-border: #8d88b3;
+  --color-border-strong: #b3aed6;
+  --color-surface: #0f0e18;
+  --color-surface-2: #16151f;
+}
+html[data-a11y-contrast="high"] body {
+  background-image: none;
+}
+
+/* Same as the operating system's "reduce motion", for people who only want it here. */
+html[data-a11y-motion="reduce"] *,
+html[data-a11y-motion="reduce"] *::before,
+html[data-a11y-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-links="underline"] a {
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
 }
 
 /* Logical properties keep spacing correct in RTL and LTR. */
@@ -146,7 +195,7 @@ body {
     box-shadow 160ms ease;
 }
 @utility btn-primary {
-  background: var(--color-brand);
+  background: var(--color-brand-fill);
   color: #fff;
   box-shadow: var(--shadow-glow);
 }
