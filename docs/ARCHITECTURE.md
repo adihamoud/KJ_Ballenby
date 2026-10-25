@@ -105,7 +105,7 @@ All providers go through Supabase Auth (`@supabase/ssr` for cookie-based session
 - **Microsoft:** same flow with `provider: 'azure'`, scopes `email openid profile`, tenant `common` so personal and work accounts both work.
 - **Phone OTP (+972):** `signInWithOtp({ phone: '+9725XXXXXXXX' })` -> Supabase sends SMS via Twilio -> guest enters 6-digit code -> `verifyOtp({ phone, token, type: 'sms' })`. UI accepts local Israeli formats and converts to E.164. Rate limiting is Supabase's default plus a per-IP limit in the Route Handler. An Israeli SMS provider can replace Twilio later through the Supabase "Send SMS" auth hook without client changes.
 - **Guests:** `signInAnonymously()` from the join Server Action (ADR-009). The anonymous user is `authenticated` for RLS, gets a `profiles` row from the trigger, and is upgraded to a named account on first social or SMS login (`linkIdentity`), keeping requests and history.
-- **Session:** JWT in HttpOnly cookies, refreshed by middleware; `profiles.locale` read after login to pick the locale.
+- **Session:** JWT in `sb-<project-ref>-auth-token` cookies set by `@supabase/ssr` (`SameSite=Lax`, not HttpOnly because the browser client reads them, 400-day default max-age; see [PRIVACY.md](./PRIVACY.md)), refreshed by middleware; `profiles.locale` read after login to pick the locale.
 - **Roles:** derived from `venue_members`, never from JWT claims, so role changes take effect immediately.
 
 ## 6. Environments
