@@ -69,6 +69,11 @@ export interface GuestRequestView {
   position: number | null;
   /** Waiting songs that play before this one, the current singer excluded (null while pending). */
   ahead: number | null;
+  /**
+   * When the song is likely to start (ISO 8601): what is left on the mic plus every song ahead
+   * with a changeover, as `estimateStarts` computes for the DJ. Null while pending or on the mic.
+   */
+  startsAt: string | null;
   createdAt: string;
 }
 

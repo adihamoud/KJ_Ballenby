@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Heebo } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { dir } from "@kj/i18n";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
+
+// Heebo covers Hebrew and Latin in one family (variable weight), so headings and body text
+// look the same in both locales. Self-hosted by next/font: no request to Google at runtime.
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  display: "swap",
+  variable: "--font-heebo",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -22,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0a14",
+  themeColor: "#0a0a12",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -44,7 +53,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={dir(locale)}>
+    <html lang={locale} dir={dir(locale)} className={heebo.variable}>
       <body className="safe-area min-h-dvh antialiased">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

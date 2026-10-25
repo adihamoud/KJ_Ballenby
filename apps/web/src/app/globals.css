@@ -1,19 +1,80 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. A night at the bar: near-black ink with a faint violet cast, one hot brand
+ * pink for the action a guest takes next, violet for secondary emphasis, stage gold for
+ * "you're up", green for anything live. Every colour is exposed to Tailwind through @theme so
+ * components use `bg-surface`, `text-muted`, `border-brand` and friends.
+ */
 @theme {
-  --color-bg: #0b0a14;
-  --color-surface: #16142a;
-  --color-surface-2: #201d3a;
-  --color-border: #2d2950;
-  --color-text: #f4f1ff;
-  --color-muted: #a39ec4;
+  --color-bg: #0a0a12;
+  --color-surface: #14131f;
+  --color-surface-2: #1d1b2c;
+  --color-surface-3: #27243a;
+  --color-border: #2a2740;
+  --color-border-strong: #3d3957;
+  --color-text: #f6f4ff;
+  --color-muted: #a39fbd;
+  --color-faint: #716d8a;
   --color-brand: #ff4d8d;
-  --color-brand-2: #7c5cff;
-  --color-accent: #ffd166;
-  --color-danger: #ff6b6b;
+  --color-brand-2: #917cff;
+  --color-accent: #ffc55c;
+  --color-success: #3ddc97;
+  --color-warning: #ffb547;
+  --color-danger: #ff6b7a;
 
-  --font-sans: "Heebo", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-heebo), "Heebo", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  --radius-lg: 1rem;
   --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px -20px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 10px 28px -10px rgba(255, 77, 141, 0.55);
+  --shadow-sheet: 0 -16px 48px -16px rgba(0, 0, 0, 0.8);
+
+  --animate-sheet-in: sheet-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-fade-in: fade-in 200ms ease-out both;
+  --animate-toast-in: toast-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes toast-in {
+    from {
+      transform: translateY(12px) scale(0.98);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.55);
+    }
+    70% {
+      box-shadow: 0 0 0 8px rgba(61, 220, 151, 0);
+    }
+  }
 }
 
 :root {
@@ -27,12 +88,35 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background-image:
-    radial-gradient(60rem 40rem at 10% -10%, rgba(124, 92, 255, 0.25), transparent 60%),
-    radial-gradient(50rem 35rem at 110% 10%, rgba(255, 77, 141, 0.2), transparent 60%);
+    radial-gradient(42rem 28rem at 15% -8%, rgba(145, 124, 255, 0.22), transparent 62%),
+    radial-gradient(36rem 26rem at 105% 4%, rgba(255, 77, 141, 0.16), transparent 60%);
+  background-repeat: no-repeat;
+}
+
+::selection {
+  background: rgba(255, 77, 141, 0.35);
+}
+
+/* One focus style everywhere; mouse clicks don't show it, keyboards and switch access do. */
+:focus-visible {
+  outline: 2px solid var(--color-brand-2);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Logical properties keep spacing correct in RTL and LTR. */
@@ -40,6 +124,8 @@ body {
   padding-inline: max(1rem, env(safe-area-inset-left), env(safe-area-inset-right));
   padding-block-end: env(safe-area-inset-bottom);
 }
+
+/* ---------- Buttons ---------- */
 
 @utility btn {
   display: inline-flex;
@@ -49,45 +135,183 @@ body {
   min-height: 3rem;
   padding-inline: 1.25rem;
   border-radius: 9999px;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
   transition:
     transform 120ms ease,
-    opacity 120ms ease;
+    opacity 120ms ease,
+    background-color 120ms ease,
+    box-shadow 160ms ease;
 }
 @utility btn-primary {
-  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-2));
-  color: white;
+  background: var(--color-brand);
+  color: #fff;
+  box-shadow: var(--shadow-glow);
 }
 @utility btn-secondary {
   background: var(--color-surface-2);
   color: var(--color-text);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
+}
+@utility btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid transparent;
+}
+@utility btn-sm {
+  min-height: 2.5rem;
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+}
+.btn:hover {
+  filter: brightness(1.06);
 }
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
+.btn-ghost:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ---------- Surfaces ---------- */
 
 @utility card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
 }
+@utility card-raised {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+/* Section label above a card or group: small, spaced, muted. */
+@utility eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ---------- Inputs ---------- */
 
 @utility input {
   width: 100%;
-  min-height: 3rem;
+  min-height: 3.25rem;
   padding-inline: 1rem;
-  border-radius: 0.875rem;
+  border-radius: var(--radius-lg);
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   color: var(--color-text);
+  font-size: 1rem;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.input::placeholder {
+  color: var(--color-faint);
 }
 .input:focus {
-  outline: 2px solid var(--color-brand-2);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--color-brand-2);
+  box-shadow: 0 0 0 3px rgba(145, 124, 255, 0.25);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+.input[type="search"]::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* ---------- Small pieces ---------- */
+
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding-inline: 0.875rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+@utility chip-active {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1.5rem;
+  padding-inline: 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* A live indicator dot that breathes. */
+@utility live-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-success);
+  animation: var(--animate-pulse-dot);
+}
+
+/* Placeholder block while a list reloads. */
+@utility skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    var(--color-surface-3) 50%,
+    var(--color-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+@keyframes skeleton {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Hide the scrollbar on horizontal chip rows without losing scroll. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Printable QR sheet (admin): A4, white paper, two cards per row, no card split across pages. */

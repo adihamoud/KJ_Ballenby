@@ -5,12 +5,14 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { SearchSongRow } from "@kj/db";
 import { useOptionalGuestNight } from "@/components/GuestNightContext";
+import { CheckIcon, CloseIcon, PlayIcon, SearchIcon, YoutubeIcon } from "@/components/icons";
 import { searchSongsAction } from "@/lib/guest/song-actions";
 import { RequestSheet } from "./RequestSheet";
 import { SONG_LANGUAGES, type SongLanguage } from "@/lib/guest/song-query";
 import { formatDuration, youtubeThumbnailUrl, youtubeWatchUrl } from "@/lib/youtube";
 
 const DEBOUNCE_MS = 250;
+const TOAST_MS = 4000;
 
 export interface SongSearchProps {
   initialSongs: SearchSongRow[];
@@ -21,9 +23,16 @@ export interface SongSearchProps {
     guestName: string;
     maxSingers: number;
   };
+  /** Joined but the night is not open: say so instead of showing nothing to tap. */
+  browseOnly?: boolean;
 }
 
-export function SongSearch({ initialSongs, initialError = false, request }: SongSearchProps) {
+export function SongSearch({
+  initialSongs,
+  initialError = false,
+  request,
+  browseOnly = false,
+}: SongSearchProps) {
   const t = useTranslations("guest.search");
   const night = useOptionalGuestNight();
   const [query, setQuery] = useState("");
@@ -34,6 +43,7 @@ export function SongSearch({ initialSongs, initialError = false, request }: Song
   const [error, setError] = useState<string | null>(initialError ? t("errors.unavailable") : null);
   const [pending, startTransition] = useTransition();
   const first = useRef(true);
+  const searchRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     // The server already rendered the initial list; only re-query after the guest acts.
@@ -53,35 +63,60 @@ export function SongSearch({ initialSongs, initialError = false, request }: Song
 
   useEffect(() => {
     if (!toast) return;
-    const handle = setTimeout(() => setToast(null), 4000);
+    const handle = setTimeout(() => setToast(null), TOAST_MS);
     return () => clearTimeout(handle);
   }, [toast]);
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="song-search-title">
-      <h2 id="song-search-title" className="text-lg font-semibold">
-        {t("title")}
-      </h2>
+      <div className="flex items-baseline justify-between gap-2 px-1">
+        <h2 id="song-search-title" className="text-lg font-bold">
+          {t("title")}
+        </h2>
+        {!error && (
+          <span className="text-muted text-sm tabular-nums">
+            {t("results", { count: songs.length })}
+          </span>
+        )}
+      </div>
 
-      {toast && (
-        <p role="status" className="bg-brand-2/20 text-text rounded-xl px-3 py-2 text-sm">
-          {toast}
-        </p>
-      )}
+      <div className="relative">
+        <SearchIcon
+          size={20}
+          className="text-faint pointer-events-none absolute start-4 top-1/2 -translate-y-1/2"
+        />
+        <input
+          ref={searchRef}
+          className="input ps-12 pe-12"
+          type="search"
+          inputMode="search"
+          autoComplete="off"
+          enterKeyHint="search"
+          aria-label={t("title")}
+          placeholder={t("placeholder")}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        {query && (
+          <button
+            type="button"
+            className="text-muted hover:text-text absolute end-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full"
+            aria-label={t("clear")}
+            onClick={() => {
+              setQuery("");
+              searchRef.current?.focus();
+            }}
+          >
+            <CloseIcon size={18} />
+          </button>
+        )}
+      </div>
 
-      <input
-        className="input"
-        type="search"
-        inputMode="search"
-        autoComplete="off"
-        enterKeyHint="search"
-        aria-label={t("title")}
-        placeholder={t("placeholder")}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-
-      <div className="flex gap-2" role="group" aria-label={t("languageFilter")}>
+      <div
+        className="-mx-4 flex scrollbar-none gap-2 overflow-x-auto px-4"
+        role="group"
+        aria-label={t("languageFilter")}
+      >
         <FilterChip active={language === null} onClick={() => setLanguage(null)}>
           {t("all")}
         </FilterChip>
@@ -92,6 +127,8 @@ export function SongSearch({ initialSongs, initialError = false, request }: Song
         ))}
       </div>
 
+      {browseOnly && !request && <p className="text-muted px-1 text-sm">{t("browseOnly")}</p>}
+
       {error && (
         <p role="alert" className="text-danger text-sm">
           {error}
@@ -99,7 +136,7 @@ export function SongSearch({ initialSongs, initialError = false, request }: Song
       )}
 
       <ul
-        className={`flex flex-col gap-3 transition-opacity ${pending ? "opacity-60" : ""}`}
+        className={`flex flex-col gap-2.5 transition-opacity ${pending ? "opacity-60" : ""}`}
         aria-busy={pending}
       >
         {songs.map((song) => (
@@ -112,7 +149,25 @@ export function SongSearch({ initialSongs, initialError = false, request }: Song
       </ul>
 
       {!error && songs.length === 0 && (
-        <p className="text-muted text-sm">{t("noResults", { query })}</p>
+        <p className="card text-muted p-5 text-center text-sm">
+          {query ? t("noResults", { query }) : t("noSongs")}
+        </p>
+      )}
+
+      {toast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4">
+          <p
+            role="status"
+            className="animate-toast-in bg-text text-bg flex max-w-md items-center gap-2.5 rounded-full px-4 py-3 text-sm font-semibold shadow-xl"
+          >
+            <span className="bg-success text-bg flex size-5 shrink-0 items-center justify-center rounded-full">
+              <CheckIcon size={12} strokeWidth={3} />
+            </span>
+            <span className="truncate" dir="auto">
+              {toast}
+            </span>
+          </p>
+        </div>
       )}
 
       {request && requesting && (
@@ -147,9 +202,7 @@ function FilterChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-sm ${
-        active ? "border-brand-2 bg-brand-2/20 text-text" : "border-border bg-surface-2 text-muted"
-      }`}
+      className={`chip shrink-0 ${active ? "chip-active" : "hover:text-text"}`}
     >
       {children}
     </button>
@@ -168,44 +221,51 @@ function SongCard({ song, onRequest }: { song: SearchSongRow; onRequest?: () => 
           href={youtubeWatchUrl(primary.youtube_id)}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0"
+          className="group relative shrink-0 self-start overflow-hidden rounded-xl"
           aria-label={t("openOnYoutube", { title: song.title })}
         >
           <Image
             src={youtubeThumbnailUrl(primary.youtube_id)}
             alt=""
-            width={120}
-            height={68}
-            className="aspect-video w-[120px] rounded-lg object-cover"
+            width={112}
+            height={63}
+            className="aspect-video w-28 object-cover"
           />
+          <span className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-80 transition-opacity group-hover:opacity-100">
+            <span className="flex size-8 items-center justify-center rounded-full bg-white/90 text-black">
+              <PlayIcon size={14} />
+            </span>
+          </span>
         </a>
       ) : (
         <div
-          className="bg-surface-2 aspect-video w-[120px] shrink-0 rounded-lg"
+          className="bg-surface-3 text-faint flex aspect-video w-28 shrink-0 items-center justify-center self-start rounded-xl"
           aria-hidden="true"
-        />
+        >
+          <PlayIcon size={18} />
+        </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="truncate font-semibold" dir="auto">
+        <p className="truncate leading-tight font-bold" dir="auto">
           {song.title}
         </p>
         <p className="text-muted truncate text-sm" dir="auto">
           {song.artist}
-          {duration && <span className="ms-2 tabular-nums">{duration}</span>}
+          {duration && <span className="text-faint ms-2 tabular-nums">{duration}</span>}
         </p>
 
-        {song.videos.length > 0 && (
-          <ul className="mt-1 flex flex-wrap gap-1.5" aria-label={t("versions")}>
+        {song.videos.length > 1 && (
+          <ul className="mt-0.5 flex flex-wrap gap-1.5" aria-label={t("versions")}>
             {song.videos.map((v, i) => (
               <li key={v.youtube_id}>
                 <a
                   href={youtubeWatchUrl(v.youtube_id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-surface-2 border-border text-text inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs"
+                  className="bg-surface-3 text-muted hover:text-text inline-flex items-center gap-1 rounded-full px-2 py-1 text-[0.7rem] font-semibold"
                 >
-                  <YoutubeIcon />
+                  <YoutubeIcon size={11} />
                   <span dir="auto">{v.label ?? t("versionN", { n: i + 1 })}</span>
                 </a>
               </li>
@@ -217,7 +277,7 @@ function SongCard({ song, onRequest }: { song: SearchSongRow; onRequest?: () => 
           <button
             type="button"
             onClick={onRequest}
-            className="btn btn-primary mt-2 min-h-10 self-start px-4 text-sm"
+            className="btn btn-primary btn-sm mt-1.5 self-start"
             aria-label={t("requestSong", { title: song.title })}
           >
             {t("request")}
@@ -225,13 +285,5 @@ function SongCard({ song, onRequest }: { song: SearchSongRow; onRequest?: () => 
         )}
       </div>
     </li>
-  );
-}
-
-function YoutubeIcon() {
-  return (
-    <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z" />
-    </svg>
   );
 }

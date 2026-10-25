@@ -11,8 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#0b0a14",
-    theme_color: "#0b0a14",
+    background_color: "#0a0a12",
+    theme_color: "#0a0a12",
     icons: [
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
       { src: "/icons/maskable.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },

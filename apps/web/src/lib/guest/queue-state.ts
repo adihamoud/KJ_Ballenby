@@ -1,6 +1,7 @@
 import { evaluateRequest } from "@kj/queue-engine";
 import type { EvaluateResult, NewRequest, QueueRulesConfig } from "@kj/queue-engine";
 import { nowSinging, orderedQueue, toNightState } from "@/lib/dj/queue-model";
+import { estimateStarts } from "@/lib/dj/wait";
 import type { DjQueueItem, DjSnapshot } from "@/lib/dj/types";
 import type { GuestQueueView, GuestRequestView } from "./request-model";
 
@@ -33,12 +34,13 @@ export function guestQueueView(
   const singing = open ? nowSinging(snapshot) : null;
   const indexByRequest = new Map(ordered.map((item, index) => [item.requestId, index] as const));
   const waitingOffset = singing ? 1 : 0;
+  const starts = open ? estimateStarts(snapshot, now) : new Map<string, number>();
 
   const mine: GuestRequestView[] = open
     ? snapshot.items
         .filter((item) => userId !== null && item.requestedBy === userId)
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-        .map((item) => toGuestView(item, indexByRequest.get(item.requestId), waitingOffset))
+        .map((item) => toGuestView(item, indexByRequest.get(item.requestId), waitingOffset, starts))
     : [];
 
   return {
@@ -67,8 +69,10 @@ function toGuestView(
   item: DjQueueItem,
   orderIndex: number | undefined,
   waitingOffset: number,
+  starts: Map<string, number>,
 ): GuestRequestView {
   const inQueue = item.status !== "pending" && orderIndex !== undefined;
+  const startMs = item.status === "queued" ? starts.get(item.requestId) : undefined;
   return {
     requestId: item.requestId,
     songId: item.songId,
@@ -81,6 +85,7 @@ function toGuestView(
     // Waiting songs before this one, so "3rd in line · 2 songs before you" always agrees; the
     // singer on the mic is shown on its own line.
     ahead: inQueue ? Math.max(0, orderIndex - waitingOffset) : null,
+    startsAt: startMs !== undefined ? new Date(startMs).toISOString() : null,
     createdAt: item.createdAt,
   };
 }
