@@ -14,6 +14,7 @@ Format: context, decision, consequences. Status is `accepted` unless noted. New 
 | [ADR-008](#adr-008-guest-access-before-sign-in)                | Guest access before sign-in                | 2026-10-23 |
 | [ADR-009](#adr-009-anonymous-sign-in-as-the-guest-identity)    | Anonymous sign-in as the guest identity    | 2026-10-23 |
 | [ADR-010](#adr-010-catalog-import-parsed-in-the-browser)       | Catalog import parsed in the browser       | 2026-10-25 |
+| [ADR-011](#adr-011-automatic-versioning-with-release-please)   | Automatic versioning with release-please   | 2026-10-25 |
 
 ---
 
@@ -278,3 +279,46 @@ runs per venue at a time.
 - Negative: the import is not atomic. A failure part-way leaves earlier chunks applied (marked `failed` in the history) and deactivates nothing.
 - Negative: the tab must stay open while the chunks run (a few seconds for a typical library); an import left idle for 15 minutes is marked `failed` (`abandoned`).
 - Negative: parsing rules live in the web app. The Phase 4 bridge or a future server-side import must reuse `lib/catalog` rather than re-implement it (move it to a package then).
+
+## ADR-011: Automatic versioning with release-please
+
+Date: 2026-10-25
+
+### Context
+
+Nothing said which build a guest, DJ or tester was looking at, and there was no record of what
+changed between deploys. Commits already follow conventional commits (CLAUDE.md), which carry
+enough to derive a version bump and a changelog. We want no manual step per release beyond
+merging a PR, and nothing that can drift out of sync.
+
+### Decision
+
+Use **release-please** (`googleapis/release-please-action`, `.github/workflows/release.yml`) on
+every push to `main`. It keeps one release PR that bumps `version` in the root `package.json` and
+`apps/web/package.json`, updates `.release-please-manifest.json` and prepends the release to
+`CHANGELOG.md`. Merging it tags `vX.Y.Z` and publishes a GitHub release. One product version for
+the repo; the internal `packages/*` are private and not versioned separately.
+
+Semver while below 1.0: `feat` bumps minor, `fix`/`perf`/`refactor`/`revert` bump patch, breaking
+changes bump minor. `docs`, `style`, `test`, `chore`, `build`, `ci` stay out of the changelog.
+CI rejects non-conventional commit subjects on PRs (`scripts/check-commits.mjs`).
+
+`next.config.ts` inlines the web app's version, the short commit (Vercel / GitHub / git) and a
+channel (`preview` on Vercel previews, `dev` locally) as `NEXT_PUBLIC_APP_*`. The root layout
+renders them in a small footer on every page (`VersionFooter`), hidden in print.
+
+The `release` agent (`.claude/agents/release.md`) checks commit subjects before PRs, reviews the
+release PR and fixes notes; it never bumps versions or tags by hand.
+
+### Consequences
+
+- Positive: every screenshot and bug report names its version and commit; the changelog writes
+  itself from history we already keep.
+- Positive: a release is one merge, owned by the repo owner.
+- Negative: the release PR opened with `GITHUB_TOKEN` does not trigger CI. Set a
+  `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT) to get checks on it; the workflow uses it when
+  present. The repo setting "Allow GitHub Actions to create and approve pull requests" must be on.
+- Negative: changelog quality is only as good as commit subjects; the commit check enforces the
+  shape, the release agent the wording.
+- Negative: `CHANGELOG.md` and the manifest are excluded from Prettier, since release-please
+  writes its own format.

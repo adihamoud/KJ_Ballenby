@@ -1,0 +1,37 @@
+name: Release
+
+# Every push to main updates (or opens) a release PR that bumps the version in package.json and
+# apps/web/package.json and adds the new commits to CHANGELOG.md. Merging that PR tags the commit
+# (vX.Y.Z) and publishes a GitHub release. The version shows in the footer of every page.
+# Config: release-please-config.json. See ADR-011 in docs/DECISIONS.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release PR and tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          # A PR opened with GITHUB_TOKEN does not trigger CI. Set RELEASE_PLEASE_TOKEN (a
+          # fine-grained PAT with contents + pull-requests write) to get CI on the release PR.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - name: Summary
+        if: ${{ steps.release.outputs.release_created }}
+        run: echo "Released ${{ steps.release.outputs.tag_name }}" >> "$GITHUB_STEP_SUMMARY"

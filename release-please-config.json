@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "bootstrap-sha": "c7e380c6d9ffa67577191d3042c0bbfa438946ab",
+  "pull-request-title-pattern": "chore: release ${version}",
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "refactor", "section": "Refactoring" },
+    { "type": "docs", "section": "Documentation", "hidden": true },
+    { "type": "style", "section": "Style", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "chore", "section": "Chores", "hidden": true },
+    { "type": "build", "section": "Build", "hidden": true },
+    { "type": "ci", "section": "CI", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "kj-ballenby",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [{ "type": "json", "path": "apps/web/package.json", "jsonpath": "$.version" }]
+    }
+  }
+}
