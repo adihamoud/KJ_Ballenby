@@ -17,8 +17,8 @@
      (RLS per venue)   (Google, Microsoft,     (postgres_changes on
                         Phone OTP/Twilio)       queue_entries, song_requests)
             |
-     Supabase Storage  <--  catalog uploads  -->  Edge Function: catalog-import
-                                                  (service role, parses CSV/XML, upserts songs)
+     Supabase Storage  <--  catalog uploads (raw file, for reference)
+     admin browser parses CSV/XML --> Server Actions --> RPC import_catalog_chunk (as the admin, RLS)
 
  Phase 4: VirtualDJ bridge (local app on DJ PC) <-- Realtime/REST --> Supabase
 ```
@@ -81,10 +81,15 @@ Without Supabase configured the same flow runs against an in-memory demo night, 
 
 ### 3.4 Catalog import
 
-1. Admin uploads CSV/XML via the browser directly to Supabase Storage bucket `catalog-uploads/<venue_id>/<uuid>.<ext>` (RLS on storage objects: owner/admin of that venue).
-2. Server Action inserts `catalog_imports` (status `pending`) and invokes Edge Function `catalog-import` with the import id.
-3. Edge Function (service role) streams the file, parses rows, normalizes title/artist, upserts into `songs` on `(venue_id, title, artist)`, updates `stats`, sets status `done` or `failed` with `error`.
-4. Admin UI subscribes to the `catalog_imports` row and shows progress/result.
+Parsing happens in the admin's browser (ADR-010): a VirtualDJ `database.xml` can be tens of MB, more than a Server Action body or a Vercel function request accepts.
+
+1. On `/admin/catalog` the admin picks a CSV, a VirtualDJ `database.xml` or a VirtualDJ playlist (`.vdjfolder`). `lib/catalog/parse.ts` decodes it (UTF-8, UTF-16, Windows-1255), maps columns or VirtualDJ tags, normalizes (whitespace, karaoke/featuring tags in titles, `Artist - Title` file names, language from script) and de-duplicates case-insensitively. The admin sees counts and the first rows before importing.
+2. The browser uploads the raw file to Storage bucket `catalog-imports` at `<venue_id>/<uuid>.<ext>` (RLS on storage objects: owner/admin of that venue), for reference only.
+3. `startCatalogImportAction` inserts `catalog_imports` with status `processing` (one running import per venue; one idle for 15 minutes is marked `failed`).
+4. `importCatalogChunkAction` re-sanitizes each chunk of 500 rows and calls `import_catalog_chunk`, which upserts case-insensitively on `(title, artist)` and accumulates `stats`.
+5. `finishCatalogImportAction` calls `finish_catalog_import`, which optionally deactivates songs the file did not contain and sets status `done`. A failed step marks the import `failed` with an error code; songs from earlier chunks stay (re-importing is idempotent) and nothing is deactivated.
+
+Everything runs as the signed-in owner/admin under RLS; there is no service role in this flow.
 
 ## 4. Realtime strategy
 
@@ -103,8 +108,9 @@ All providers go through Supabase Auth (`@supabase/ssr` for cookie-based session
 
 - **Google:** `signInWithOAuth({ provider: 'google', redirectTo: <app>/auth/callback })` -> Google consent -> `https://<project-ref>.supabase.co/auth/v1/callback` -> redirect to app `/auth/callback` which exchanges the code for a session cookie. Profile row is created by a Postgres trigger on `auth.users` insert.
 - **Microsoft:** same flow with `provider: 'azure'`, scopes `email openid profile`, tenant `common` so personal and work accounts both work.
-- **Phone OTP (+972):** `signInWithOtp({ phone: '+9725XXXXXXXX' })` -> Supabase sends SMS via Twilio -> guest enters 6-digit code -> `verifyOtp({ phone, token, type: 'sms' })`. UI accepts local Israeli formats and converts to E.164. Rate limiting is Supabase's default plus a per-IP limit in the Route Handler. An Israeli SMS provider can replace Twilio later through the Supabase "Send SMS" auth hook without client changes.
-- **Guests:** `signInAnonymously()` from the join Server Action (ADR-009). The anonymous user is `authenticated` for RLS, gets a `profiles` row from the trigger, and is upgraded to a named account on first social or SMS login (`linkIdentity`), keeping requests and history.
+- **Email + password:** sign-up calls `signUp({ email, password, options: { data: { full_name }, emailRedirectTo: <app>/auth/callback } })`; with email confirmation on, the confirmation link returns through `/auth/callback`. Sign-in is `signInWithPassword`. "Forgot password" sends `resetPasswordForEmail` with the callback's `next` set to `/login/reset`, where `updateUser({ password })` saves the new one.
+- **Phone OTP (+972):** `signInWithOtp({ phone: '+9725XXXXXXXX' })` -> Supabase sends SMS via Twilio -> guest enters 6-digit code -> `verifyOtp({ phone, token, type: 'sms' })`. Sign-in passes `shouldCreateUser: false` so unknown numbers get "create an account first"; sign-up passes `shouldCreateUser: true` and the name as `data.full_name`. UI accepts local Israeli formats and converts to E.164. Rate limiting is Supabase's default plus a per-IP limit in the Route Handler. An Israeli SMS provider can replace Twilio later through the Supabase "Send SMS" auth hook without client changes.
+- **Guests:** `signInAnonymously()` from the join Server Action (ADR-009). The anonymous user is `authenticated` for RLS, gets a `profiles` row from the trigger, and is meant to be upgraded to a named account (`updateUser` / `linkIdentity`), keeping requests and history. The upgrade is not built yet: until it is, `/signup` sends a guest session back to `/guest`, since a plain sign-up would create a second user and strand the guest's requests. Signing in to an existing account from a guest session switches users; the guest's requests stay with the anonymous user.
 - **Session:** JWT in `sb-<project-ref>-auth-token` cookies set by `@supabase/ssr` (`SameSite=Lax`, not HttpOnly because the browser client reads them, 400-day default max-age; see [PRIVACY.md](./PRIVACY.md)), refreshed by middleware; `profiles.locale` read after login to pick the locale.
 - **Roles:** derived from `venue_members`, never from JWT claims, so role changes take effect immediately.
 

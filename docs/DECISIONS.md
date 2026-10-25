@@ -13,6 +13,7 @@ Format: context, decision, consequences. Status is `accepted` unless noted. New 
 | [ADR-007](#adr-007-hebrew-first-rtl-with-next-intl)            | Hebrew-first RTL with next-intl            | 2026-10-19 |
 | [ADR-008](#adr-008-guest-access-before-sign-in)                | Guest access before sign-in                | 2026-10-23 |
 | [ADR-009](#adr-009-anonymous-sign-in-as-the-guest-identity)    | Anonymous sign-in as the guest identity    | 2026-10-23 |
+| [ADR-010](#adr-010-catalog-import-parsed-in-the-browser)       | Catalog import parsed in the browser       | 2026-10-25 |
 | [ADR-011](#adr-011-automatic-versioning-with-release-please)   | Automatic versioning with release-please   | 2026-10-25 |
 | [ADR-012](#adr-012-essential-cookies-only)                     | Essential cookies only                     | 2026-10-25 |
 
@@ -245,6 +246,40 @@ Anonymous users are upgraded to a full account on first social or SMS login (`li
   IP by default); venues with many guests behind one NAT need the limit raised.
 - Negative: the request flow needs a server round-trip for identity; when sign-in fails (provider
   disabled, rate limit) the guest can still browse but gets a clear "unavailable" message on request.
+
+## ADR-010: Catalog import parsed in the browser
+
+Date: 2026-10-25
+
+### Context
+
+ADR-005 has venues upload their own catalog, and the architecture planned a `catalog-import` Edge Function
+that reads the file from Storage with the service role. A VirtualDJ `database.xml` can be tens of MB.
+A Server Action body is limited to 1 MB by default and a Vercel function request to 4.5 MB, so the
+file cannot go through our own server. An Edge Function means a second runtime to deploy, a service
+role in the import path, and asynchronous status for a job that takes seconds.
+
+### Decision
+
+The **admin's browser parses the file** (`apps/web/src/lib/catalog`, pure TypeScript with unit tests)
+and shows a preview first. It then sends **chunks of 500 normalized rows** to Server Actions, which
+sanitize them again and call two `security invoker` RPCs, `import_catalog_chunk` and
+`finish_catalog_import`. Because they run as the signed-in admin, the existing owner/admin RLS policies
+on `songs` and `catalog_imports` authorize the import, and no service role is involved. The raw file
+still goes to the `catalog-imports` bucket for reference.
+
+Songs match case-insensitively on `(title, artist)`. "Deactivate songs missing from this file" runs
+once at the end, using `songs.last_import_id`, and refuses when the import touched no song. One import
+runs per venue at a time.
+
+### Consequences
+
+- Positive: no Edge Function to deploy and no service role; the import uses the same session and RLS as every other admin write.
+- Positive: the admin sees counts and sample rows before anything changes, and errors appear immediately in their language.
+- Positive: re-importing is idempotent, so a failed chunk is fixed by importing again.
+- Negative: the import is not atomic. A failure part-way leaves earlier chunks applied (marked `failed` in the history) and deactivates nothing.
+- Negative: the tab must stay open while the chunks run (a few seconds for a typical library); an import left idle for 15 minutes is marked `failed` (`abandoned`).
+- Negative: parsing rules live in the web app. The Phase 4 bridge or a future server-side import must reuse `lib/catalog` rather than re-implement it (move it to a package then).
 
 ## ADR-011: Automatic versioning with release-please
 

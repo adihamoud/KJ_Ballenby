@@ -1,12 +1,19 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { GuestHeader } from "@/components/guest/GuestHeader";
-import { MicIcon, MusicIcon, QrIcon } from "@/components/icons";
+import { LogInIcon, MicIcon, MusicIcon, QrIcon, UserPlusIcon } from "@/components/icons";
 
 const STEPS = [
   { key: "scan", Icon: QrIcon },
   { key: "pick", Icon: MusicIcon },
   { key: "sing", Icon: MicIcon },
+] as const;
+
+// The three ways in: create an account, sign in to one, or skip accounts and join a table.
+const ENTRIES = [
+  { key: "newUser", href: "/signup", Icon: UserPlusIcon, flip: false },
+  { key: "existingUser", href: "/login", Icon: LogInIcon, flip: true },
+  { key: "guest", href: "/join", Icon: QrIcon, flip: false },
 ] as const;
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -27,12 +34,38 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           {t("landing.title")}
         </h1>
         <p className="text-muted text-lg leading-relaxed text-pretty">{t("landing.subtitle")}</p>
-        <div className="mt-2 flex flex-col items-center gap-2">
-          <Link href="/join" className="btn btn-primary w-full text-lg">
-            {t("landing.guestCta")}
+      </section>
+
+      <section aria-labelledby="entry-heading" className="flex flex-col gap-3">
+        <h2 id="entry-heading" className="eyebrow">
+          {t("landing.choose")}
+        </h2>
+        {ENTRIES.map(({ key, href, Icon, flip }) => (
+          <Link
+            key={key}
+            href={href}
+            data-testid={`entry-${key}`}
+            className={`flex items-center gap-4 rounded-[var(--radius-xl)] p-4 transition active:scale-[0.98] ${
+              key === "guest" ? "bg-brand text-white shadow-[var(--shadow-glow)]" : "card-raised"
+            }`}
+          >
+            <span
+              className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${
+                key === "guest" ? "bg-white/20" : "bg-surface-3 text-brand-2"
+              }`}
+            >
+              <Icon size={22} className={flip ? "rtl:-scale-x-100" : undefined} />
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-lg font-bold">{t(`landing.entries.${key}.title`)}</span>
+              <span
+                className={`text-sm leading-snug ${key === "guest" ? "text-white/85" : "text-muted"}`}
+              >
+                {t(`landing.entries.${key}.body`)}
+              </span>
+            </span>
           </Link>
-          <p className="text-faint text-sm">{t("landing.noAccount")}</p>
-        </div>
+        ))}
       </section>
 
       <ol className="flex flex-col gap-3">
@@ -52,10 +85,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         ))}
       </ol>
 
-      <footer className="mt-auto flex flex-col items-center gap-3 pt-4 pb-2">
-        <Link href="/login" className="btn btn-ghost btn-sm">
-          {t("landing.cta")}
-        </Link>
+      <footer className="mt-auto flex justify-center pt-4 pb-2">
         <p className="text-faint text-sm">
           {t("landing.forVenues")}
           <Link href="/admin" className="text-muted underline underline-offset-4">

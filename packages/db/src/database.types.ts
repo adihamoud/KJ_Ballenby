@@ -163,6 +163,8 @@ export interface SongRow {
   duration_sec: number | null;
   external_ref: string | null;
   is_active: boolean;
+  /** The catalog import that last created or refreshed this song. */
+  last_import_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -215,6 +217,22 @@ export interface CatalogImportRow {
   updated_at: string;
 }
 
+/**
+ * `catalog_imports.stats`. The app writes `file`, `format`, `total`, `duplicates` and `skipped`
+ * when the import starts; `import_catalog_chunk` adds `inserted`, `updated` and server-side
+ * `skipped`; `finish_catalog_import` adds `deactivated`.
+ */
+export interface CatalogImportStats {
+  file?: string;
+  format?: string;
+  total?: number;
+  duplicates?: number;
+  skipped?: number;
+  inserted?: number;
+  updated?: number;
+  deactivated?: number;
+}
+
 type Timestamps = "created_at" | "updated_at";
 
 export interface Database {
@@ -264,7 +282,10 @@ export interface Database {
       };
       songs: {
         Row: Row<SongRow>;
-        Insert: Insert<SongRow, Timestamps | "id" | "language" | "duration_sec" | "external_ref" | "is_active">;
+        Insert: Insert<
+          SongRow,
+          Timestamps | "id" | "language" | "duration_sec" | "external_ref" | "is_active" | "last_import_id"
+        >;
         Update: Partial<SongRow>;
         Relationships: [];
       };
@@ -327,6 +348,14 @@ export interface Database {
       venue_table_labels: {
         Args: { p_venue_id: string };
         Returns: { id: string; label: string }[];
+      };
+      import_catalog_chunk: {
+        Args: { p_import_id: string; p_rows: Json };
+        Returns: Json;
+      };
+      finish_catalog_import: {
+        Args: { p_import_id: string; p_deactivate_missing?: boolean };
+        Returns: Json;
       };
       submit_request: {
         Args: {

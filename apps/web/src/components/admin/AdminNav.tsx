@@ -8,6 +8,7 @@ const ITEMS = [
   { href: "/admin/dj", key: "dj", exact: false },
   { href: "/admin/tonight", key: "tonight", exact: false },
   { href: "/admin/tables", key: "tables", exact: false },
+  { href: "/admin/catalog", key: "catalog", exact: false },
   { href: "/admin/qr", key: "qr", exact: false },
   { href: "/admin/settings", key: "settings", exact: false },
 ] as const;
