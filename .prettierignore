@@ -6,3 +6,5 @@ pnpm-lock.yaml
 .turbo
 supabase/.temp
 packages/db/src/database.types.ts
+CHANGELOG.md
+.release-please-manifest.json

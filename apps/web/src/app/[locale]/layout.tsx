@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { dir } from "@kj/i18n";
+import { VersionFooter } from "@/components/VersionFooter";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir={dir(locale)} className={heebo.variable}>
       <body className="safe-area min-h-dvh antialiased">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <VersionFooter />
       </body>
     </html>
   );
