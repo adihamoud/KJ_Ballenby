@@ -20,6 +20,10 @@ export async function AuthScreen({
 }) {
   const user = await getCurrentUser();
   if (user && !user.is_anonymous) redirect({ href: "/app", locale });
+  // Signing up from a guest session would create a second user and strand the guest's requests
+  // under the anonymous one. Until sign-up upgrades the anonymous user instead (updateUser /
+  // linkIdentity, docs/ARCHITECTURE.md section 5), guests go back to their table.
+  if (user?.is_anonymous && mode === "signup") redirect({ href: "/guest", locale });
 
   const t = await getTranslations("auth");
   const other = mode === "signin" ? "/signup" : "/login";
