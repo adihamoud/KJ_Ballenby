@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { useNow, useTranslations } from "next-intl";
 import { useGuestNight } from "@/components/GuestNightContext";
 import { useNightChanges } from "@/components/useNightChanges";
