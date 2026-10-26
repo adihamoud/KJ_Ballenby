@@ -342,7 +342,7 @@ export interface Database {
         Returns: SearchSongRow[];
       };
       join_table: {
-        Args: { p_table_id: string };
+        Args: { p_code: string; p_venue_id?: string | null };
         Returns: string | null;
       };
       venue_table_labels: {

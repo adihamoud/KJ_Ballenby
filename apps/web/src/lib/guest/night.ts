@@ -13,9 +13,9 @@ export interface GuestNight {
   /** The guest's group (the cookie's table) in the open night, from `group_members`. */
   groupId: string | null;
   /**
-   * The table the guest actually sits at tonight (the group's table, verified by membership or
-   * `join_table`), not the unsigned cookie's claim. Null when there is no open night or the join
-   * failed.
+   * The table the guest actually sits at tonight. Membership (and `join_table`, which re-resolves
+   * the table from the cookie's join code — not a bare table id) is what grants it; null when
+   * there is no open night or the join failed.
    */
   tableId: string | null;
 }
@@ -106,10 +106,16 @@ export async function loadGuestNight(session: GuestSession): Promise<GuestNightR
     groupId = groupRes.data?.id ?? null;
   }
   if (!groupId) {
-    const joined = await supabase.rpc("join_table", { p_table_id: session.tableId });
+    // Proof, not a bare table id: the per-venue join code from the cookie the guest got by
+    // scanning the QR / entering the code. join_table re-resolves the table from it, so a forged
+    // cookie with someone else's table id cannot seat the guest (pentest H1, 2026-10-26).
+    const joined = await supabase.rpc("join_table", {
+      p_code: session.joinCode,
+      p_venue_id: session.venueId,
+    });
     if (joined.error) {
       console.error("join_table failed", {
-        tableId: session.tableId,
+        venueId: session.venueId,
         message: joined.error.message,
       });
       return fail("join_table", joined.error.message);

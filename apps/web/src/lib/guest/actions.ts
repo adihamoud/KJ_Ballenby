@@ -41,7 +41,7 @@ export async function joinTableAction(_prev: JoinState, formData: FormData): Pro
 
   const { table } = result;
   const previous = await getGuestSession();
-  const identity = await ensureGuestIdentity(name, table.table_id, table.night_open);
+  const identity = await ensureGuestIdentity(name, table, table.night_open);
   if (identity === "failed") return { error: "identity", ...echo };
   await setGuestSession({
     v: 2,
@@ -70,13 +70,17 @@ export async function retryGuestIdentityAction(formData: FormData): Promise<void
   const session = await getGuestSession();
   if (!session) return redirect({ href: "/join", locale });
   const live = await resolveTable(session.joinCode, session.venueId);
-  await ensureGuestIdentity(session.name, session.tableId, live.ok && live.table.night_open);
+  const proof = { join_code: session.joinCode, venue_id: session.venueId };
+  await ensureGuestIdentity(session.name, proof, live.ok && live.table.night_open);
   return redirect({ href: "/guest", locale });
 }
 
+/** The proof join_table needs: the per-venue join code the guest resolved (never a bare table id). */
+type TableProof = { join_code: string; venue_id: string };
+
 async function ensureGuestIdentity(
   name: string,
-  tableId: string,
+  table: TableProof,
   nightOpen: boolean,
 ): Promise<"ok" | "failed"> {
   const supabase = await createServerSupabase();
@@ -91,8 +95,12 @@ async function ensureGuestIdentity(
     }
   }
   if (!nightOpen) return "ok";
-  const { error } = await supabase.rpc("join_table", { p_table_id: tableId });
-  if (error) console.error("join_table failed", { tableId, message: error.message });
+  const { error } = await supabase.rpc("join_table", {
+    p_code: table.join_code,
+    p_venue_id: table.venue_id,
+  });
+  if (error)
+    console.error("join_table failed", { venueId: table.venue_id, message: error.message });
   return "ok";
 }
 
