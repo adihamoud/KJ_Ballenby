@@ -32,8 +32,12 @@ begin
   -- An open night for the demo venue so join_table has somewhere to seat.
   insert into public.nights (venue_id, status) values (v_venue, 'open');
 
-  -- An anonymous auth user; the auth trigger creates the matching profile.
+  -- An anonymous auth user. The on_auth_user_created trigger reads columns (e.g. new.phone) that
+  -- the full GoTrue auth.users has but the bare supabase/postgres CI image does not, so disable it
+  -- for this insert; join_table creates the matching profile itself (insert ... on conflict).
+  alter table auth.users disable trigger on_auth_user_created;
   insert into auth.users (id, aud, role) values (v_user, 'authenticated', 'authenticated');
+  alter table auth.users enable trigger on_auth_user_created;
 
   -- Impersonate that user for the rest of the transaction.
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
