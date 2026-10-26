@@ -53,11 +53,36 @@ test.describe("DJ console (demo night)", () => {
     );
 
     const standby = await panel.locator('[data-deck="standby"]').getAttribute("data-deck-index");
+    // The <video> inside a deck's YouTube iframe: seconds buffered and whether it is paused.
+    const video = async () => {
+      const handle = await panel.locator(`[data-deck-index="${standby}"] iframe`).elementHandle();
+      const frame = await handle?.contentFrame();
+      return frame?.evaluate(() => {
+        const v = document.querySelector("video");
+        if (!v) return null;
+        const end = v.buffered.length ? v.buffered.end(v.buffered.length - 1) : 0;
+        return { buffered: end, paused: v.paused };
+      });
+    };
+    // Warm-up finished (YouTube can take a while, or autoplay may be blocked on this runner).
+    const warmed = await expect(page.getByTestId("on-deck").locator('[role="status"]'))
+      .toHaveText(/Preloaded/, { timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false);
+    const before = warmed ? await video() : null;
+
     await page.getByTestId("now-singing").getByRole("button", { name: "Done, next" }).click();
     await expect(panel.locator(`[data-deck-index="${standby}"]`)).toHaveAttribute(
       "data-deck",
       "active",
     );
+    // The swap keeps the warmed-up buffer (no reload) and still waits for the DJ to press play.
+    if (before && before.buffered > 0) {
+      await page.waitForTimeout(1_000);
+      const after = await video();
+      expect(after?.paused).toBe(true);
+      expect(after?.buffered ?? 0).toBeGreaterThanOrEqual(before.buffered);
+    }
   });
 
   test("approve moves a request into the queue", async ({ page }) => {
