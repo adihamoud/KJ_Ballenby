@@ -127,3 +127,11 @@ jobs:
           done
           echo "== seed"
           psql -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f supabase/seed.sql
+      - name: Run SQL security/regression tests
+        env:
+          PGPASSWORD: postgres
+        run: |
+          for f in supabase/tests/*.test.sql; do
+            echo "== $f"
+            psql -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f "$f"
+          done
