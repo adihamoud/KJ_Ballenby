@@ -4,7 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { Link } from "@/i18n/navigation";
-import { nextUp, nowSinging } from "@/lib/dj/queue-model";
+import { pickVideoId } from "@/lib/dj/decks";
+import { nextUp, nowSinging, onDeck } from "@/lib/dj/queue-model";
 import type { DjSnapshot } from "@/lib/dj/types";
 import { MixerPanel } from "./MixerPanel";
 import { PlayerPanel } from "./PlayerPanel";
@@ -58,17 +59,20 @@ export function DjConsole({
   // Player: the singer on the mic, otherwise the next fair entry cued and ready.
   const singing = nowSinging(snapshot);
   const playerItem = singing ?? nextUp(snapshot);
-  const selectedVideoId = useMemo(() => {
-    if (!playerItem) return null;
-    const chosen = chosenVideo[playerItem.songId];
-    const embeddable = playerItem.videos.filter((v) => v.embeddable);
-    if (chosen && embeddable.some((v) => v.youtubeId === chosen)) return chosen;
-    return embeddable[0]?.youtubeId ?? null;
-  }, [chosenVideo, playerItem]);
+  // On deck: whoever takes the mic after the player's song, preloaded on the second deck.
+  const deckItem = onDeck(snapshot);
+  const selectedVideoId = pickVideoId(playerItem, chosenVideo);
+  const deckVideoId = pickVideoId(deckItem, chosenVideo);
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  // The player panel (and its container) only exists while a night is open.
-  const player = useYouTubePlayer(containerRef, selectedVideoId, { enabled: night !== null });
+  const deckA = useRef<HTMLDivElement | null>(null);
+  const deckB = useRef<HTMLDivElement | null>(null);
+  const deckRefs = useMemo(() => [deckA, deckB] as const, []);
+  // The player panel (and its deck containers) only exists while a night is open.
+  const player = useYouTubePlayer(
+    deckRefs,
+    { current: selectedVideoId, next: deckVideoId },
+    { enabled: night !== null },
+  );
   const mic = useMicChannel();
 
   // Master mute silences both channels without forgetting their own mute state.
@@ -272,8 +276,10 @@ export function DjConsole({
                     onSelectVideo={(id) =>
                       playerItem && setChosenVideo((c) => ({ ...c, [playerItem.songId]: id }))
                     }
+                    deckItem={deckItem}
+                    deckVideoId={deckVideoId}
                     player={player}
-                    containerRef={containerRef}
+                    deckRefs={deckRefs}
                     onStart={startFromPlayer}
                     onDone={doneFromPlayer}
                     autoStart={autoStart}

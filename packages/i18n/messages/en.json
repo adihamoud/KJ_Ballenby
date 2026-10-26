@@ -428,7 +428,16 @@
       "seek": "Position",
       "startSong": "Start song",
       "done": "Done",
-      "doneNext": "Done, next"
+      "doneNext": "Done, next",
+      "onDeck": "On deck",
+      "deckEmpty": "Nobody else in line yet",
+      "deckNoVideo": "No in-app video for this song",
+      "deckStatus": {
+        "idle": "Waiting",
+        "loading": "Preloading…",
+        "ready": "Preloaded, ready to play",
+        "error": "Couldn't preload this version"
+      }
     },
     "mixer": {
       "title": "Mixer",
