@@ -11,6 +11,14 @@
 
 begin;
 
+-- The on_auth_user_created trigger (migration 20261019000000) reads auth.users columns such as
+-- new.phone that the bare supabase/postgres CI image's auth.users does not have, and this test
+-- connects as `postgres`, which does not own auth.users and so cannot disable the trigger. We do
+-- own public.handle_new_user, so replace it with a no-op for the duration of this transaction; it
+-- is restored on rollback. join_table creates the guest's profile itself, so the no-op is harmless.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql as $noop$ begin return new; end; $noop$;
+
 do $$
 declare
   v_venue uuid := '00000000-0000-0000-0000-000000000001';  -- demo venue from seed.sql
@@ -32,12 +40,9 @@ begin
   -- An open night for the demo venue so join_table has somewhere to seat.
   insert into public.nights (venue_id, status) values (v_venue, 'open');
 
-  -- An anonymous auth user. The on_auth_user_created trigger reads columns (e.g. new.phone) that
-  -- the full GoTrue auth.users has but the bare supabase/postgres CI image does not, so disable it
-  -- for this insert; join_table creates the matching profile itself (insert ... on conflict).
-  alter table auth.users disable trigger on_auth_user_created;
+  -- An anonymous auth user (the trigger was no-opped above so its missing-column reference on this
+  -- CI image does not fire; profiles.id FKs to auth.users, so the row must exist).
   insert into auth.users (id, aud, role) values (v_user, 'authenticated', 'authenticated');
-  alter table auth.users enable trigger on_auth_user_created;
 
   -- Impersonate that user for the rest of the transaction.
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
