@@ -44,9 +44,12 @@ begin
   -- CI image does not fire; profiles.id FKs to auth.users, so the row must exist).
   insert into auth.users (id, aud, role) values (v_user, 'authenticated', 'authenticated');
 
-  -- Impersonate that user for the rest of the transaction.
+  -- Impersonate that user for the rest of the transaction. auth.uid() reads request.jwt.claim.sub
+  -- (dotted) on this image and the request.jwt.claims JSON on others, so set both. IS DISTINCT FROM
+  -- so a null (claim not picked up) fails loudly here instead of surfacing as "not signed in" later.
+  perform set_config('request.jwt.claim.sub', v_user::text, true);
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
-  if auth.uid() <> v_user then
+  if auth.uid() is distinct from v_user then
     raise exception 'test setup: auth.uid() did not pick up the jwt claim (got %)', auth.uid();
   end if;
 
