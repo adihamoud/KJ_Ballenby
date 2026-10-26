@@ -42,6 +42,10 @@ test.describe("DJ console (demo night)", () => {
       .then(() => true)
       .catch(() => false);
     test.skip(!loaded, "YouTube IFrame API unreachable from this runner");
+    // Both decks embed from the privacy-enhanced host (docs/PRIVACY.md, G3).
+    for (const iframe of await panel.locator("[data-deck] iframe").all()) {
+      await expect(iframe).toHaveAttribute("src", /^https:\/\/www\.youtube-nocookie\.com\/embed\//);
+    }
     // Both players are ready once the standby deck starts preloading (or reports it can't).
     await expect(page.getByTestId("on-deck").locator('[role="status"]')).toHaveText(
       /Preloading|Preloaded|Couldn't preload/,

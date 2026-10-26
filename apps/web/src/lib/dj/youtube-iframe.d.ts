@@ -32,6 +32,8 @@ declare namespace YT {
   }
 
   interface PlayerOptions {
+    /** Origin the player iframe loads from, e.g. `https://www.youtube-nocookie.com`. */
+    host?: string;
     width?: string | number;
     height?: string | number;
     videoId?: string;
