@@ -415,3 +415,38 @@ deployment's environment.
 - Negative: automated checks find a minority of real problems; the manual checklist in
   `docs/ACCESSIBILITY.md` (VoiceOver in Hebrew, keyboard-only DJ console, zoom) still has to be
   walked before releases.
+
+## ADR-014: One staff role (owner = admin = dj)
+
+### Context
+
+Venues are small and typically run by one or two people who do everything — set up tables, print
+QR codes, edit the queue rules, import the catalog and run the night. The three-role model
+(`owner` / `admin` / `dj`) added permission checks and UI the operator did not want: a DJ could
+not see the admin pages, only an owner could manage staff. The venue owner asked to collapse the
+distinction so any staff member can do everything.
+
+### Decision
+
+Treat `owner`, `admin` and `dj` as **one role, `admin`**. Authorization is now "are you a member
+of this venue?", nothing finer.
+
+- Migration `20261026130000_single_admin_role.sql` sets every `venue_members.role` to `admin` and
+  rewrites each role-scoped RLS policy (`venues`, `venue_members`, `venue_tables`, `songs`,
+  `song_videos`, `queue_rules`, `catalog_imports`, and the `catalog-imports` storage policies) from
+  `is_venue_staff(id, array['owner','admin'])` / `array['owner']` to plain `is_venue_staff(id)`.
+- The `venue_role` enum keeps its three values. Postgres enums are forward-only; dropping values
+  means recreating the type, which is not worth the risk for a value that is now only cosmetic. The
+  column is vestigial — the app only ever writes `admin` and nothing authorizes on it.
+- The app follows: `loadAdminVenue` / `loadStaffMembership` grant admin to any membership (and are
+  filtered to the caller, not left to RLS), and the seed-staff scripts insert `admin`.
+
+### Consequences
+
+- Positive: the operator's own account, and anyone they add, has full access with no role juggling.
+- Negative: this removes the owner/admin/dj authorization boundary. Any staff member can manage
+  tables and QR codes, change rules, replace the catalog **and add or remove other staff**. This
+  was accepted knowingly, days after the 2026-10-26 review that hardened the guest boundary; if a
+  venue later needs least-privilege staff, reintroducing roles means a new enum-backed policy set.
+- The three-role scaffolding (enum values, the `notAdmin` result branch, role labels in i18n) is
+  left in place but unused, so the change is small and reversible.

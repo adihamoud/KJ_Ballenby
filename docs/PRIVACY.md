@@ -6,7 +6,7 @@ storage key, a third-party request or a personal-data field updates this file in
 The rule behind it is [ADR-012](./DECISIONS.md#adr-012-essential-cookies-only).
 
 Status of each row: **ok** (matches the code), **gap** (see the backlog at the end).
-Last checked against the code on 2026-10-25.
+Last checked against the code on 2026-10-26.
 
 ## 1. Principles
 
@@ -61,23 +61,26 @@ cookies. All of this stays on staff devices; guest pages never load YouTube.
 
 ## 4. Personal data inventory
 
-| Where                                                       | Fields                                                                                                            | Whose     | Source                    | Retention (target)                                                             | Status |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------- | ------------------------- | ------------------------------------------------------------------------------ | ------ |
-| `auth.users` (Supabase)                                     | email, password hash (email sign-up), phone, provider ids, last sign-in, `is_anonymous`, display name in metadata | all users | login / anonymous sign-in | Named: until account deletion. Anonymous: 30 days after last activity          | gap G4 |
-| `profiles`                                                  | `display_name`, `avatar_url`, `phone`, `locale`                                                                   | all users | trigger from `auth.users` | Same as the auth user (cascade)                                                | ok     |
-| `venue_members`                                             | user id, role                                                                                                     | staff     | owner invite              | Until removed from the venue                                                   | ok     |
-| `group_members`                                             | user id, group (= table), join time                                                                               | guests    | `join_table` RPC          | With the night; see `song_requests`                                            | gap G4 |
-| `song_requests`                                             | `requested_by`, `singers` (free-text names, may name other people), `note`, timestamps, song                      | guests    | request flow              | Row kept for venue stats; `singers` and `note` cleared 90 days after the night | gap G4 |
-| `queue_entries`, `nights`, `catalog_imports`, `queue_rules` | staff user ids in `*_by` columns                                                                                  | staff     | host actions              | With the venue                                                                 | ok     |
-| `kj_guest` cookie                                           | display name                                                                                                      | guests    | join form                 | 12 hours                                                                       | ok     |
-| Vercel / Supabase logs                                      | IP, user agent, URL                                                                                               | everyone  | platform                  | Platform defaults; to record                                                   | gap G7 |
+| Where                                                       | Fields                                                                                                            | Whose     | Source                             | Retention (target)                                                             | Status |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------- | ------------------------------------------------------------------------------ | ------ |
+| `auth.users` (Supabase)                                     | email, password hash (email sign-up), phone, provider ids, last sign-in, `is_anonymous`, display name in metadata | all users | login / anonymous sign-in          | Named: until account deletion. Anonymous: 30 days after last activity          | gap G4 |
+| `profiles`                                                  | `display_name`, `avatar_url`, `phone`, `locale`                                                                   | all users | trigger from `auth.users`          | Same as the auth user (cascade)                                                | ok     |
+| `venue_members`                                             | user id, role                                                                                                     | staff     | staff invite (any member, ADR-014) | Until removed from the venue                                                   | ok     |
+| `group_members`                                             | user id, group (= table), join time                                                                               | guests    | `join_table` RPC                   | With the night; see `song_requests`                                            | gap G4 |
+| `song_requests`                                             | `requested_by`, `singers` (free-text names, may name other people), `note`, timestamps, song                      | guests    | request flow                       | Row kept for venue stats; `singers` and `note` cleared 90 days after the night | gap G4 |
+| `queue_entries`, `nights`, `catalog_imports`, `queue_rules` | staff user ids in `*_by` columns                                                                                  | staff     | host actions                       | With the venue                                                                 | ok     |
+| `kj_guest` cookie                                           | display name                                                                                                      | guests    | join form                          | 12 hours                                                                       | ok     |
+| `catalog-imports` storage bucket                            | uploaded catalog files (song titles/artists; not guest personal data) — upload/read open to any staff member      | staff     | catalog import (ADR-014)           | With the venue                                                                 | ok     |
+| Vercel / Supabase logs                                      | IP, user agent, URL                                                                                               | everyone  | platform                           | Platform defaults; to record                                                   | gap G7 |
 
 Phone numbers are never shown to other guests (PRD section 4). Staff see participants'
-`display_name` and avatar only.
+`display_name` and avatar only. Since ADR-014 there is one staff role: every member has full
+access, including managing other staff, so the set of people who can reach venue data is set by
+any staff member, not only the owner.
 
 ## 5. Rights flows
 
-| Right           | Guest (self-service)                                              | Venue (owner/admin)                                     | Operator                                        | Status           |
+| Right           | Guest (self-service)                                              | Venue (any staff member, ADR-014)                       | Operator                                        | Status           |
 | --------------- | ----------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------- | ---------------- |
 | Know            | Privacy notice linked from the join page and the footer           | Same notice + venue terms                               | -                                               | G5 (ok on merge) |
 | Access / export | "My data" page: profile, requests, tables joined (JSON)           | Export the venue's nights, requests, members (CSV/JSON) | On request within 30 days                       | gap G8           |

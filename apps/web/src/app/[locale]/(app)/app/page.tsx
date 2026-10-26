@@ -20,7 +20,8 @@ export default async function GuestHome({ params }: { params: Promise<{ locale: 
     user?.email ??
     user?.phone ??
     "";
-  const canAdmin = staff?.role === "owner" || staff?.role === "admin";
+  // One staff role now: any member is an admin (see docs/DECISIONS.md).
+  const canAdmin = Boolean(staff);
 
   return (
     <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6">

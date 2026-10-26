@@ -2,13 +2,13 @@
 -- AFTER the user has signed in once (Google/Microsoft/SMS), so auth.users has their row.
 --
 -- 1. Replace the email below with yours.
--- 2. Role: 'owner' sees everything (admin pages, rules, staff); 'dj' only runs the night.
+-- 2. There is one staff role now: 'admin' (owner = admin = dj), full access (see docs/DECISIONS.md).
 --
 -- The demo venue comes from supabase/seed.sql. On a remote project that was never seeded,
 -- run seed.sql in the SQL editor first (it is idempotent: every insert is "on conflict do nothing").
 
 insert into public.venue_members (venue_id, user_id, role)
-select '00000000-0000-0000-0000-000000000001', u.id, 'owner'
+select '00000000-0000-0000-0000-000000000001', u.id, 'admin'
 from auth.users u
 where lower(u.email) = lower('you@example.com')
 on conflict (venue_id, user_id) do update set role = excluded.role;
