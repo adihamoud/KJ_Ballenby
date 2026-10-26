@@ -10,7 +10,7 @@ export interface AdminVenue {
   id: string;
   slug: string;
   name: string;
-  /** The signed-in user's role; always owner or admin here. Demo mode reports owner. */
+  /** Single staff role: every member is an admin (see docs/DECISIONS.md). */
   role: VenueRole;
   mode: "live" | "demo";
 }
@@ -18,12 +18,11 @@ export interface AdminVenue {
 export type AdminVenueResult =
   { ok: true; venue: AdminVenue } | { ok: false; reason: "notStaff" | "notAdmin" | "unavailable" };
 
-const ADMIN_ROLES: readonly VenueRole[] = ["owner", "admin"];
-
 /**
- * The venue the signed-in user administers. RLS limits `venue_members` to the user's own
- * memberships, so the first owner/admin row is theirs; a user who is only a DJ gets
- * `notAdmin`, a user with no membership `notStaff`. Without Supabase configured the
+ * The venue the signed-in user administers. There is one staff role now (owner = admin = dj = admin,
+ * see docs/DECISIONS.md), so any membership grants admin; a user with no membership gets `notStaff`
+ * (`notAdmin` is kept in the result type for the admin layout but is no longer returned). The
+ * membership is filtered to the caller, not just left to RLS. Without Supabase configured the
  * in-memory demo venue is served so the pages can be exercised and e2e-tested.
  *
  * Wrapped in React `cache` so the layout and the page share one lookup per request.
@@ -32,17 +31,22 @@ export const loadAdminVenue = cache(async (): Promise<AdminVenueResult> => {
   const supabase = await createServerSupabase();
   if (!supabase) {
     const demo = getDemoVenue(await readDemoSandboxId());
-    return { ok: true, venue: { ...demo.venue, role: "owner", mode: "demo" } };
+    return { ok: true, venue: { ...demo.venue, role: "admin", mode: "demo" } };
   }
 
-  const { data: memberships, error: memberError } = await supabase
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth.user;
+  if (!user) return { ok: false, reason: "notStaff" };
+
+  const { data: membership, error: memberError } = await supabase
     .from("venue_members")
-    .select("venue_id, role")
-    .order("created_at");
+    .select("venue_id")
+    .eq("user_id", user.id)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
   if (memberError) return fail("venue_members", memberError.message);
-  if (!memberships || memberships.length === 0) return { ok: false, reason: "notStaff" };
-  const membership = memberships.find((m) => ADMIN_ROLES.includes(m.role));
-  if (!membership) return { ok: false, reason: "notAdmin" };
+  if (!membership) return { ok: false, reason: "notStaff" };
 
   const { data: venue, error: venueError } = await supabase
     .from("venues")
@@ -56,7 +60,7 @@ export const loadAdminVenue = cache(async (): Promise<AdminVenueResult> => {
       id: venue.id,
       slug: venue.slug,
       name: venue.name,
-      role: membership.role,
+      role: "admin",
       mode: "live",
     },
   };
